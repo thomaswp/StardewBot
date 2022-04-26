@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StardewModdingAPI;
+using Microsoft.Xna.Framework;
 
 namespace StardewBot
 {
@@ -56,9 +57,15 @@ namespace StardewBot
         [ScriptableMethod]
         public AsyncMethod MoveForward()
         {
-            return new AsyncMethod().Do(() => {
-                NPC.tryToMoveInDirection(NPC.FacingDirection, false, 0, false);
-            });
+            Vector2 startTile = NPC.getTileLocation();
+            return new AsyncMethod()
+                .Do(() => {
+                //NPC.tryToMoveInDirection(NPC.FacingDirection, false, 0, false);
+                NPC.setMovingInFacingDirection();
+                //NPC.facePlayer(Game1.player);
+            })
+            .UpdateUntil(() => NPC.getTileLocation() != startTile)
+            .Do(() => NPC.Halt());
         }
 
         [ScriptableMethod]
@@ -73,6 +80,8 @@ namespace StardewBot
 
         public void Update()
         {
+            //NPC.updateMovement(NPC.currentLocation, Game1.currentGameTime);
+            NPC.MovePosition(Game1.currentGameTime, Game1.viewport, NPC.currentLocation);
             bool inDialogNow = NPC.CurrentDialogue.Count == 0;
             if (inDialog != inDialogNow)
             {
