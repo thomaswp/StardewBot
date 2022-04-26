@@ -61,6 +61,7 @@ namespace StardewBot
             {
                 result();
             }
+            if (robot != null) robot.Update();
         }
 
         private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)

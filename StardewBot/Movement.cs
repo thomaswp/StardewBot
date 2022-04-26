@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StardewModdingAPI;
 
 namespace StardewBot
 {
@@ -19,6 +20,19 @@ namespace StardewBot
         public Movement(Bot bot)
         {
             Bot = bot;
+
+            ModEntry.ModHelper.Events.Input.ButtonPressed += Input_ButtonPressed;
+        }
+
+        private void Input_ButtonPressed(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
+        {
+            if (e.Button == SButton.MouseRight || e.Button == SButton.MouseLeft)
+            {
+                if (e.Cursor.Tile == NPC.getTileLocation())
+                {
+                    OnClick();
+                }
+            }
         }
 
         [ScriptableEvent(false)]
@@ -42,16 +56,18 @@ namespace StardewBot
         [ScriptableMethod]
         public AsyncMethod MoveForward()
         {
-            // TODO
-            return new AsyncMethod().Do(() => Logger.Log("Forward..."));
+            return new AsyncMethod().Do(() => {
+                NPC.tryToMoveInDirection(NPC.FacingDirection, false, 0, false);
+            });
         }
 
         [ScriptableMethod]
         public AsyncMethod Jump()
         {
+            Logger.Log(NPC.yJumpOffset);
             return new AsyncMethod()
                 .Do(() => NPC.jump())
-                .UpdateUntil(() => NPC.yJumpOffset > 0)
+                .UpdateUntil(() => NPC.yJumpOffset != 0)
                 .UpdateUntil(() => NPC.yJumpOffset == 0);
         }
 

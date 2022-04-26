@@ -23,6 +23,8 @@ namespace StardewBot
             Name = npc.displayName;
             Guid = guid;
 
+            ModEntry.Dispatcher.Register(this);
+
             foreach (IBehavior behavior in new IBehavior[] {
                 new Movement(this),
             })
