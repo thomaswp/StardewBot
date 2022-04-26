@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
+using BlocklyBridge;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -10,8 +14,21 @@ namespace StardewBot
     /// <summary>The mod entry point.</summary>
     public class ModEntry : Mod
     {
-        private IModHelper helper;
-        private NPC robot;
+        private ConcurrentQueue<Action> queuedActions = new ConcurrentQueue<Action>();
+
+        private Bot robot;
+
+
+        public static Dispatcher Dispatcher
+        {
+            get;
+            private set;
+        }
+        public static IModHelper ModHelper
+        {
+            get;
+            private set;
+        }
 
         /*********
         ** Public methods
@@ -20,9 +37,30 @@ namespace StardewBot
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            this.helper = helper;
+            ModHelper = helper;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
+            helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
+
+            Logger.Implementation = new StardewLogger(Monitor);
+
+            Dispatcher = new Dispatcher("127.0.0.1", 8000, action => queuedActions.Enqueue(action));
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Dispatcher.Start(assembly.GetTypes(), () =>
+            {
+                Logger.Log("Connected!!!");
+                if (robot != null) Dispatcher.SetTarget(robot);
+            });
+
+        }
+
+        private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
+        {
+            while(queuedActions.TryDequeue(out Action result))
+            {
+                result();
+            }
         }
 
         private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
@@ -32,10 +70,11 @@ namespace StardewBot
             robin.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(0, 5));
             farm.addCharacter(robin);
 
-            robot = robin;
+            robot = new Bot(robin, "ROBIN");
+            Dispatcher.SetTarget(robot);
 
             // print button presses to the console window
-            Monitor.Log($"Spawned robot: {robot.position}", LogLevel.Debug);
+            Monitor.Log($"Spawned robot!!: {robin.position}", LogLevel.Debug);
         }
 
 
@@ -51,11 +90,11 @@ namespace StardewBot
             if (!Context.IsWorldReady)
                 return;
 
-            if (robot != null && e.Button == SButton.O)
-            {
-                //robot.tryToMoveInDirection(0, false, 0, false);
-                robot.jump();
-            }
+            //if (robot != null && e.Button == SButton.O)
+            //{
+            //    //robot.tryToMoveInDirection(0, false, 0, false);
+            //    robot.jump();
+            //}
 
         }
     }
