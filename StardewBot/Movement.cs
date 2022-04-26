@@ -58,14 +58,15 @@ namespace StardewBot
         public AsyncMethod MoveForward()
         {
             Vector2 startTile = NPC.getTileLocation();
+
             return new AsyncMethod()
                 .Do(() => {
-                //NPC.tryToMoveInDirection(NPC.FacingDirection, false, 0, false);
-                NPC.setMovingInFacingDirection();
-                //NPC.facePlayer(Game1.player);
-            })
-            .UpdateUntil(() => NPC.getTileLocation() != startTile)
-            .Do(() => NPC.Halt());
+                    Logger.Log(NPC.currentLocation.Name);
+                    Logger.Log(NPC.nextPosition(NPC.getDirection()));
+                        NPC.setMovingInFacingDirection();
+                })
+                .UpdateUntil(() => NPC.getTileLocation() != startTile || !NPC.isMoving())
+                .Do(() => NPC.Halt());
         }
 
         [ScriptableMethod]
@@ -80,8 +81,25 @@ namespace StardewBot
 
         public void Update()
         {
+            // TODO: Fix NPC location bug?
+            var player = Game1.player;
+            var location = player.currentLocation;
             //NPC.updateMovement(NPC.currentLocation, Game1.currentGameTime);
-            NPC.MovePosition(Game1.currentGameTime, Game1.viewport, NPC.currentLocation);
+            //if (NPC.isMoving() && location.isCollidingPosition(NPC.nextPosition(NPC.getDirection()), Game1.viewport, true))
+            //{
+            //    Logger.Log($"Stopping at {location.Name} for {NPC.nextPosition(NPC.getDirection())}");
+            //    var playerPos = player.nextPosition(player.getDirection());
+            //    Logger.Log($"Player is {playerPos} {location.isCollidingPosition(playerPos, Game1.viewport, true)}");
+            //    NPC.Halt();
+            //}
+            if (NPC.isMoving() && !location.isTilePassable(NPC.nextPositionTile(), Game1.viewport))
+            {
+                Logger.Log($"Stopping at {location.Name} for {NPC.nextPositionTile()}");
+                var playerTile = player.nextPositionTile();
+                Logger.Log($"Player is {playerTile} {location.isTilePassable(playerTile, Game1.viewport)}");
+                NPC.Halt();
+            }
+            NPC.MovePosition(Game1.currentGameTime, Game1.viewport, location);
             bool inDialogNow = NPC.CurrentDialogue.Count == 0;
             if (inDialog != inDialogNow)
             {

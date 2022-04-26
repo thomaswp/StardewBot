@@ -68,8 +68,10 @@ namespace StardewBot
         {
             Farm farm = Game1.getFarm();
             NPC robin = Game1.getCharacterFromName("Robin");
-            robin.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(0, 5));
+            robin.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
             farm.addCharacter(robin);
+            robin.currentLocation = farm;
+            //Logger.Log(robin.currentLocation.Name);
 
             robot = new Bot(robin, "ROBIN");
             Dispatcher.SetTarget(robot);
