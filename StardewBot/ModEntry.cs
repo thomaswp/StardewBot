@@ -68,16 +68,17 @@ namespace StardewBot
         {
             Farm farm = Game1.getFarm();
             NPC robin = Game1.getCharacterFromName("Robin");
-            robin.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
-            farm.addCharacter(robin);
-            robin.currentLocation = farm;
+            NPC bot = new NPC(robin.Sprite, Vector2.Zero, 0, "Robot");
+            bot.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
+            farm.addCharacter(bot);
+            bot.currentLocation = farm;
             //Logger.Log(robin.currentLocation.Name);
 
-            robot = new Bot(robin, "ROBIN");
+            robot = new Bot(bot, "ROBOT1");
             Dispatcher.SetTarget(robot);
 
             // print button presses to the console window
-            Monitor.Log($"Spawned robot!!: {robin.position}", LogLevel.Debug);
+            Monitor.Log($"Spawned robot!!: {bot.position}", LogLevel.Debug);
         }
 
 
