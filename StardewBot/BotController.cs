@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace StardewBot
 {
-    public class Bot : IProgrammable
+    public class BotController : IProgrammable
     {
         public readonly string Guid;
         public readonly string Name;
-        public readonly NPC NPC;
+        public readonly BotFarmer NPC;
 
         private Dictionary<Type, IBehavior> behaviors = new Dictionary<Type, IBehavior>();
         private MethodQueue queue = new BlocklyBridge.MethodQueue();
 
-        public Bot(NPC npc, string guid)
+        public BotController(BotFarmer npc, string guid)
         {
             NPC = npc;
             Name = npc.displayName;

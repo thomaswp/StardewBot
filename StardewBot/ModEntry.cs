@@ -16,7 +16,7 @@ namespace StardewBot
     {
         private ConcurrentQueue<Action> queuedActions = new ConcurrentQueue<Action>();
 
-        private Bot robot;
+        private BotController robot;
 
 
         public static Dispatcher Dispatcher
@@ -30,6 +30,8 @@ namespace StardewBot
             private set;
         }
 
+        //public WebOverlay Overlay;
+
         /*********
         ** Public methods
         *********/
@@ -41,6 +43,7 @@ namespace StardewBot
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
+            helper.Events.Display.Rendered += Display_Rendered;
 
             Logger.Implementation = new StardewLogger(Monitor);
 
@@ -53,6 +56,16 @@ namespace StardewBot
                 if (robot != null) Dispatcher.SetTarget(robot);
             });
 
+            //Overlay = new WebOverlay(Game1.game1.GraphicsDevice);
+        }
+
+        private void Display_Rendered(object sender, RenderedEventArgs e)
+        {
+            //e.SpriteBatch.Begin();
+            //var texture = Overlay.ReadTexture(e.SpriteBatch.GraphicsDevice);
+            //if (texture == null) return;
+            //e.SpriteBatch.Draw(texture, new Vector2(0, 0), Color.White);
+            //e.SpriteBatch.End();
         }
 
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
@@ -67,14 +80,18 @@ namespace StardewBot
         private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
         {
             Farm farm = Game1.getFarm();
-            NPC robin = Game1.getCharacterFromName("Robin");
-            NPC bot = new NPC(robin.Sprite, Vector2.Zero, 0, "Robot");
-            bot.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
+            //NPC robin = Game1.getCharacterFromName("Robin");
+            //NPC bot = new NPC(robin.Sprite, Vector2.Zero, 0, "Robot");
+
+            var player = Game1.player;
+            BotFarmer bot = new BotFarmer("Robot");
+
             farm.addCharacter(bot);
             bot.currentLocation = farm;
+            bot.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
             //Logger.Log(robin.currentLocation.Name);
 
-            robot = new Bot(bot, "ROBOT1");
+            robot = new BotController(bot, "ROBOT1");
             Dispatcher.SetTarget(robot);
 
             // print button presses to the console window

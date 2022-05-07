@@ -13,16 +13,16 @@ namespace StardewBot
     [ScriptableBehavior("Movement", 60)]
     public class Movement : IBehavior
     {
-        public readonly Bot Bot;
-        public NPC NPC { get { return Bot.NPC; } }
+        public readonly BotController Controller;
+        public BotFarmer Bot { get { return Controller.NPC; } }
 
-        private bool inDialog = false;
+        //private bool inDialog = false;
 
-        public GameLocation Location { get { return NPC.currentLocation; } }
+        public GameLocation Location { get { return Bot.currentLocation; } }
 
-        public Movement(Bot bot)
+        public Movement(BotController bot)
         {
-            Bot = bot;
+            Controller = bot;
 
             ModEntry.ModHelper.Events.Input.ButtonPressed += Input_ButtonPressed;
         }
@@ -46,14 +46,16 @@ namespace StardewBot
 
         private void StartMovingInDirection(Vector2 direction)
         {
-            if (direction.Y < 0) NPC.SetMovingUp(true);
-            if (direction.X > 0) NPC.SetMovingRight(true);
-            if (direction.Y > 0) NPC.SetMovingDown(true);
-            if (direction.X < 0) NPC.SetMovingLeft(true);
+            if (direction.Y < 0) Bot.SetMovingUp(true);
+            if (direction.X > 0) Bot.SetMovingRight(true);
+            if (direction.Y > 0) Bot.SetMovingDown(true);
+            if (direction.X < 0) Bot.SetMovingLeft(true);
         }
 
         private bool IsPassable(Vector2 tile)
         {
+            // TODO: This doesn't work with grass - need to see how Farmer does it
+            // Probably need to use isCollidingPosition
             return Location.isTileLocationTotallyClearAndPlaceable(tile);
         }
 
@@ -68,7 +70,7 @@ namespace StardewBot
                 //Logger.Log($"tile {tile} passable {location.isTilePassable(loc, Game1.viewport)}");
                 //Logger.Log($"tile {tile} colliding {location.isCollidingPosition(rect, Game1.viewport, true)}");
                 Logger.Log($"tile {tile} placable {location.isTileLocationTotallyClearAndPlaceable(tile)} in {Location.Name}");
-                if (e.Cursor.Tile == NPC.getTileLocation())
+                if (e.Cursor.Tile == Bot.getTileLocation())
                 {
                     OnClick();
                 }
@@ -78,26 +80,34 @@ namespace StardewBot
         [ScriptableEvent(false)]
         public void OnClick()
         {
-            BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
+            BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
-        [ScriptableEvent(false)]
-        public void OnDialogStart()
-        {
-            BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
-        }
+        //[ScriptableEvent(false)]
+        //public void OnDialogStart()
+        //{
+        //    BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
+        //}
 
-        [ScriptableEvent(false)]
-        public void OnDialogEnd()
+        //[ScriptableEvent(false)]
+        //public void OnDialogEnd()
+        //{
+        //    BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
+        //}
+
+        [ScriptableMethod]
+        public AsyncMethod UseTool()
         {
-            BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
+            return new AsyncMethod()
+                .Do(() => Bot.UseTool())
+                .UpdateUntil(() => !Bot.UsingTool);
         }
 
         [ScriptableMethod]
         public AsyncMethod TurnRight()
         {
             return new AsyncMethod()
-                .Do(() => NPC.faceDirection((NPC.FacingDirection + 1) % 4))
+                .Do(() => Bot.faceDirection((Bot.FacingDirection + 1) % 4))
                 // TODO: wait probs not needed
                 .Wait(2);
         }
@@ -106,7 +116,7 @@ namespace StardewBot
         public AsyncMethod TurnLeft()
         {
             return new AsyncMethod()
-                .Do(() => NPC.faceDirection((NPC.FacingDirection + 3) % 4))
+                .Do(() => Bot.faceDirection((Bot.FacingDirection + 3) % 4))
                 .Wait(2);
         }
 
@@ -114,7 +124,7 @@ namespace StardewBot
         public AsyncMethod FaceDirection(Direction dir)
         {
             return new AsyncMethod()
-                .Do(() => NPC.faceDirection((int)dir))
+                .Do(() => Bot.faceDirection((int)dir))
                 .Wait(2);
         }
 
@@ -136,8 +146,8 @@ namespace StardewBot
         public AsyncMethod MoveForward()
         {
             // TODO: tile selection should also be in the async
-            Vector2 startTile = NPC.getTileLocation();
-            Vector2 newTile = startTile + DirToVec(NPC.FacingDirection);
+            Vector2 startTile = Bot.getTileLocation();
+            Vector2 newTile = startTile + DirToVec(Bot.FacingDirection);
             return MoveDirectlyToTile(newTile);
         }
 
@@ -150,44 +160,44 @@ namespace StardewBot
             Logger.Log($"new: {newTile}, passable: {IsPassable(newTile)}");
             if (!IsPassable(newTile)) return AsyncMethod.NoOp;
 
-            Vector2 startTile = NPC.getTileLocation();
-            Logger.Log($"current tile: {startTile}, pos: {NPC.Position}");
+            Vector2 startTile = Bot.getTileLocation();
+            Logger.Log($"current tile: {startTile}, pos: {Bot.Position}");
 
             Vector2 targetPosision = TileToPos(newTile);
             Logger.Log($"target tile: {newTile}, pos: {targetPosision}");
 
-            Vector2 dir = targetPosision - NPC.Position;
+            Vector2 dir = targetPosision - Bot.Position;
             Logger.Log($"dir: {dir}");
 
+            // TODO: Need to stop directions separately
             List<Func<bool>> conditions = new List<Func<bool>>();
-            if (dir.X > 0) conditions.Add(() => NPC.position.X >= targetPosision.X);
-            else if (dir.X < 0) conditions.Add(() => NPC.position.X <= targetPosision.X);
-            if (dir.Y > 0) conditions.Add(() => NPC.position.Y >= targetPosision.Y);
-            else if (dir.Y < 0) conditions.Add(() => NPC.position.Y <= targetPosision.Y);
+            if (dir.X > 0) conditions.Add(() => Bot.position.X >= targetPosision.X);
+            else if (dir.X < 0) conditions.Add(() => Bot.position.X <= targetPosision.X);
+            if (dir.Y > 0) conditions.Add(() => Bot.position.Y >= targetPosision.Y);
+            else if (dir.Y < 0) conditions.Add(() => Bot.position.Y <= targetPosision.Y);
 
             return new AsyncMethod()
                 .Do(() => {
                     StartMovingInDirection(dir);
                 })
-                .UpdateUntil(() => conditions.All(c => c()) || !NPC.isMoving())
-                .Do(() => NPC.Halt());
+                .UpdateUntil(() => conditions.All(c => c()) || !Bot.isMoving())
+                .Do(() => Bot.Halt());
         }
 
         [ScriptableMethod]
         public AsyncMethod Jump()
         {
-            Logger.Log(NPC.yJumpOffset);
+            Logger.Log(Bot.yJumpOffset);
             return new AsyncMethod()
-                .Do(() => NPC.jump())
-                .UpdateUntil(() => NPC.yJumpOffset != 0)
-                .UpdateUntil(() => NPC.yJumpOffset == 0);
+                .Do(() => Bot.jump())
+                .UpdateUntil(() => Bot.yJumpOffset != 0)
+                .UpdateUntil(() => Bot.yJumpOffset == 0);
         }
 
         public void Update()
         {
-            // TODO: Fix NPC location bug?
             var player = Game1.player;
-            var location = player.currentLocation;
+            var location = Location;
             //NPC.updateMovement(NPC.currentLocation, Game1.currentGameTime);
             //if (NPC.isMoving() && location.isCollidingPosition(NPC.nextPosition(NPC.getDirection()), Game1.viewport, true))
             //{
@@ -196,29 +206,30 @@ namespace StardewBot
             //    Logger.Log($"Player is {playerPos} {location.isCollidingPosition(playerPos, Game1.viewport, true)}");
             //    NPC.Halt();
             //}
-            if (NPC.isMoving() && !location.isTilePassable(NPC.nextPositionTile(), Game1.viewport))
+            if (Bot.isMoving() && !location.isTilePassable(Bot.nextPositionTile(), Game1.viewport))
             {
-                Logger.Log($"Stopping at {location.Name} for {NPC.nextPositionTile()}");
+                Logger.Log($"Stopping at {location.Name} for {Bot.nextPositionTile()}");
                 var playerTile = player.nextPositionTile();
                 Logger.Log($"Player is {playerTile} {location.isTilePassable(playerTile, Game1.viewport)}");
-                NPC.Halt();
+                Bot.Halt();
             }
-            NPC.MovePosition(Game1.currentGameTime, Game1.viewport, location);
-            bool inDialogNow = NPC.CurrentDialogue.Count == 0;
-            if (inDialog != inDialogNow)
-            {
-                inDialog = inDialogNow;
-                if (inDialog)
-                {
-                    OnDialogStart();
-                    Logger.Log("Dialog starting!");
-                }
-                else
-                {
-                    OnDialogEnd();
-                    Logger.Log("Dialog ended!");
-                }
-            }
+            Bot.MovePosition(Game1.currentGameTime, Game1.viewport, location);
+
+            //bool inDialogNow = NPC.CurrentDialogue.Count == 0;
+            //if (inDialog != inDialogNow)
+            //{
+            //    inDialog = inDialogNow;
+            //    if (inDialog)
+            //    {
+            //        OnDialogStart();
+            //        Logger.Log("Dialog starting!");
+            //    }
+            //    else
+            //    {
+            //        OnDialogEnd();
+            //        Logger.Log("Dialog ended!");
+            //    }
+            //}
         }
     }
 }
