@@ -30,7 +30,7 @@ namespace StardewBot
             private set;
         }
 
-        //public WebOverlay Overlay;
+        public WebOverlay Overlay;
 
         /*********
         ** Public methods
@@ -56,14 +56,14 @@ namespace StardewBot
                 if (robot != null) Dispatcher.SetTarget(robot);
             });
 
-            //Overlay = new WebOverlay(Game1.game1.GraphicsDevice);
+            Overlay = new WebOverlay(Game1.game1.GraphicsDevice);
         }
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
             //e.SpriteBatch.Begin();
-            //var texture = Overlay.ReadTexture(e.SpriteBatch.GraphicsDevice);
-            //if (texture == null) return;
+            var texture = Overlay.ReadTexture(e.SpriteBatch.GraphicsDevice);
+            if (texture == null) return;
             //e.SpriteBatch.Draw(texture, new Vector2(0, 0), Color.White);
             //e.SpriteBatch.End();
         }

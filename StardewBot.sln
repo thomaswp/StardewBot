@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StardewBot", "StardewBot\St
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlocklyBridge", "BlocklyBridge\BlocklyBridge.csproj", "{67A0B4AB-D998-4159-BB8B-324E7879DA71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserHost", "BrowserHost\BrowserHost.csproj", "{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserHostTest", "BrowserHostTest\BrowserHostTest.csproj", "{FF101479-A535-44F8-A7D5-CE9791695A0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{67A0B4AB-D998-4159-BB8B-324E7879DA71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67A0B4AB-D998-4159-BB8B-324E7879DA71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67A0B4AB-D998-4159-BB8B-324E7879DA71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
