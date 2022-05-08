@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlocklyBridge\BlocklyBridge.csproj" />
+    <ProjectReference Include="..\BrowserCommon\BrowserCommon.csproj" />
   </ItemGroup>
 
   <ItemGroup>

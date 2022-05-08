@@ -56,7 +56,7 @@ namespace StardewBot
                 if (robot != null) Dispatcher.SetTarget(robot);
             });
 
-            Overlay = new WebOverlay(Game1.game1.GraphicsDevice);
+            Overlay = new WebOverlay();
         }
 
         private void Display_Rendered(object sender, RenderedEventArgs e)

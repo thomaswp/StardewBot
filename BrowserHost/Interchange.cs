@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BlocklyBridge;
+using Browser.Common;
 
-namespace BrowserHost
+namespace Browser.Host
 {
     public class Interchange : IDisposable
     {
@@ -28,7 +28,7 @@ namespace BrowserHost
             {
                 throw new Exception("Too much data!");
             }
-            Console.WriteLine($"Writng {bytes.Length} bytes");
+            //Console.WriteLine($"Writng {bytes.Length} bytes");
             buffer.Write(bytes);
         }
 

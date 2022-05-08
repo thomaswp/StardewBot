@@ -1,4 +1,6 @@
-﻿using BlocklyBridge;
+﻿
+using Browser.Common;
+using CefSharp;
 using CefSharp.OffScreen;
 using System;
 using System.Collections.Generic;
@@ -7,13 +9,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrowserHost
+namespace Browser.Host
 {
-    public class BrowserHost
+    public class BrowserHost : IBrowserUI
     {
 
         private ChromiumWebBrowser browser;
         private readonly Interchange interchange;
+        private IOBridge bridge;
 
         public BrowserHost(Interchange interchange)
         {
@@ -23,6 +26,8 @@ namespace BrowserHost
             browser.BrowserInitialized += Browser_BrowserInitialized;
             browser.LoadingStateChanged += Browser_LoadingStateChanged;
             browser.Paint += Browser_Paint;
+            
+            bridge = new IOBridge(this);
         }
 
         private void Browser_BrowserInitialized(object sender, EventArgs e)
@@ -31,13 +36,13 @@ namespace BrowserHost
             //string url = "https://www.google.com";
             //string url = "https://blockly-demo.appspot.com/static/demos/code/index.html";
             string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
-            browser.Size = new System.Drawing.Size(BrowserSettings.MAX_WIDTH, BrowserSettings.MAX_HEIGHT);
+            browser.Size = new System.Drawing.Size(Common.BrowserSettings.MAX_WIDTH, Common.BrowserSettings.MAX_HEIGHT);
             browser.Load(url);
         }
 
         private void Browser_Paint(object sender, OnPaintEventArgs e)
         {
-            Console.WriteLine("Paint!!");
+            //Console.WriteLine("Paint!!");
             int size = e.Height * e.Width * 4;
             // Console.WriteLine("Painted");
             //Bitmap bmp = new Bitmap(e.Width, e.Height, e.Width * 4, PixelFormat.Format32bppRgb, e.BufferHandle);
@@ -70,6 +75,22 @@ namespace BrowserHost
             Console.WriteLine("Loaded: " + e.IsLoading);
             //var b = browser.GetBrowser();
             //b.MainFrame.GetSourceAsync().ContinueWith(t => Console.WriteLine("Loading: " + t.Result));
+        }
+
+        public void MouseDown(int x, int y)
+        {
+            //Console.WriteLine($"Sending down {x} {y}");
+            browser.GetBrowser().GetHost().SendMouseClickEvent(new MouseEvent(x, y, CefEventFlags.None), MouseButtonType.Left, false, 1);
+        }
+
+        public void MouseUp(int x, int y)
+        {
+            browser.GetBrowser().GetHost().SendMouseClickEvent(new MouseEvent(x, y, CefEventFlags.None), MouseButtonType.Left, true, 1);
+        }
+
+        public void MouseMove(int x, int y)
+        {
+            browser.GetBrowser().GetHost().SendMouseMoveEvent(new MouseEvent(x, y, CefEventFlags.None), false);
         }
 
         //        //private void pictureBox1_MouseDown(object sender, MouseEventArgs e)

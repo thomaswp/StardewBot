@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StardewBot", "StardewBot\St
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlocklyBridge", "BlocklyBridge\BlocklyBridge.csproj", "{67A0B4AB-D998-4159-BB8B-324E7879DA71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserHost", "BrowserHost\BrowserHost.csproj", "{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrowserHost", "BrowserHost\BrowserHost.csproj", "{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserHostTest", "BrowserHostTest\BrowserHostTest.csproj", "{FF101479-A535-44F8-A7D5-CE9791695A0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserCommon", "BrowserCommon\BrowserCommon.csproj", "{35E4263C-0119-4EAE-92FD-F90C0FB058C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrowserTest", "BrowserTest\BrowserTest.csproj", "{C2ECF3EA-AD82-46E1-9E56-C87BE338FD2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +31,14 @@ Global
 		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE23B04C-0F7F-45BD-86B3-BDFC0CF4F259}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FF101479-A535-44F8-A7D5-CE9791695A0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35E4263C-0119-4EAE-92FD-F90C0FB058C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35E4263C-0119-4EAE-92FD-F90C0FB058C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35E4263C-0119-4EAE-92FD-F90C0FB058C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35E4263C-0119-4EAE-92FD-F90C0FB058C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2ECF3EA-AD82-46E1-9E56-C87BE338FD2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2ECF3EA-AD82-46E1-9E56-C87BE338FD2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2ECF3EA-AD82-46E1-9E56-C87BE338FD2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2ECF3EA-AD82-46E1-9E56-C87BE338FD2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

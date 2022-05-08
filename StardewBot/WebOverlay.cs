@@ -1,18 +1,9 @@
 ﻿using BlocklyBridge;
+using Browser.Common;
 using Microsoft.Xna.Framework.Graphics;
 using SharedMemory;
-//using CefSharp.OffScreen;
-//using CefSharp;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-//using System.Windows.Forms;
-//using CefSharp.WinForms;
 
 namespace StardewBot
 {
@@ -23,7 +14,7 @@ namespace StardewBot
         private byte[] lastRead;
         Texture2D cachedTexture;
 
-        public WebOverlay(GraphicsDevice graphicsDevice)
+        public WebOverlay()
         {
             buffer = new CircularBuffer(BrowserSettings.MEMORY_NAME);
             Action a = new Action(() =>

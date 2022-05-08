@@ -1,7 +1,7 @@
 ﻿using CefSharp.OffScreen;
 using System;
 
-namespace BrowserHost
+namespace Browser.Host
 {
     class Program
     {
