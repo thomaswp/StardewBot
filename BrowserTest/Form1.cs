@@ -34,7 +34,10 @@ namespace BrowserTest
             width = pictureBox1.Width;
             height = pictureBox1.Height;
             bridge = new IOBridge();
-            bridge.StartBrowser(width, height, @"C:\xampp\htdocs\farmbot-blockly\step-execution.html");
+            string url = "https://www.google.com";
+            //string url = "https://blockly-demo.appspot.com/static/demos/code/index.html";
+            //string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
+            bridge.StartBrowser(width, height, url);
             reader =  new GraphicsReader(width, height);
         }
 
@@ -63,9 +66,16 @@ namespace BrowserTest
             bridge.Dispose();
         }
 
+        static int FromMButton(MouseButtons button)
+        {
+            if (button == MouseButtons.Right) return (int)MouseButton.Right;
+            if (button == MouseButtons.Middle) return (int)MouseButton.Middle;
+            return (int) MouseButton.Left;
+        }
+
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            bridge.MouseDown(e.X, e.Y);
+            bridge.MouseDown(e.X, e.Y, FromMButton(e.Button));
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -73,9 +83,25 @@ namespace BrowserTest
             bridge.MouseMove(e.X, e.Y);
         }
 
+        // TODO: Add Enum
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            bridge.KeyEvent(1, (int)e.KeyCode);
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            bridge.KeyEvent(3, e.KeyChar);
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            bridge.KeyEvent(2, (int)e.KeyCode);
+        }
+
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            bridge.MouseUp(e.X, e.Y);
+            bridge.MouseUp(e.X, e.Y, FromMButton(e.Button));
         }
     }
 }

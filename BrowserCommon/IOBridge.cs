@@ -75,21 +75,27 @@ namespace Browser.Common
             buffer.RemoteRequest(new Args("Shutdown").ToBytes());
         }
 
-        public void MouseDown(int x, int y)
+        public void MouseDown(int x, int y, int button)
         {
-            var args = new Args("MouseDown").Write(x).Write(y);
+            var args = new Args("MouseDown").Write(x).Write(y).Write(button);
             buffer.RemoteRequestAsync(args.ToBytes());
         }
 
-        public void MouseUp(int x, int y)
+        public void MouseUp(int x, int y, int button)
         {
-            var args = new Args("MouseUp").Write(x).Write(y);
+            var args = new Args("MouseUp").Write(x).Write(y).Write(button);
             buffer.RemoteRequestAsync(args.ToBytes());
         }
 
         public void MouseMove(int x, int y)
         {
             var args = new Args("MouseMove").Write(x).Write(y);
+            buffer.RemoteRequestAsync(args.ToBytes());
+        }
+
+        public void KeyEvent(int type, int keyCode)
+        {
+            var args = new Args("KeyEvent").Write(type).Write(keyCode);
             buffer.RemoteRequestAsync(args.ToBytes());
         }
 
@@ -165,15 +171,23 @@ namespace Browser.Common
 
     }
 
+    public enum MouseButton
+    {
+        Left, Middle, Right
+    }
+
     public interface IBrowserUI
     {
         void StartBrowser(int width, int height, string url);
+
         void Shutdown();
 
-        void MouseDown(int x, int y);
+        void MouseDown(int x, int y, int button);
 
-        void MouseUp(int x, int y);
+        void MouseUp(int x, int y, int button);
 
         void MouseMove(int x, int y);
+
+        void KeyEvent(int type, int keyCode);
     }
 }

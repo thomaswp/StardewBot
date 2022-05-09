@@ -53,8 +53,11 @@ namespace BrowserCommon
 
         public void Dispose()
         {
-            buffer.Dispose();
-            thread.Join();
+            lock(this)
+            { 
+                buffer.Dispose();
+                thread.Join();
+            }
         }
     }
 }

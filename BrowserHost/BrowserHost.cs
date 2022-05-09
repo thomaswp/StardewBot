@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Browser.Host
 {
-    public class BrowserHost : IBrowserUI
+    public class BrowserHost : IBrowserUI, IContextMenuHandler
     {
 
         private ChromiumWebBrowser browser;
@@ -34,6 +34,7 @@ namespace Browser.Host
             browser.BrowserInitialized += Browser_BrowserInitialized;
             browser.LoadingStateChanged += Browser_LoadingStateChanged;
             browser.Paint += Browser_Paint;
+            browser.MenuHandler = this;
             
             bridge = new IOBridge(this);
         }
@@ -56,9 +57,6 @@ namespace Browser.Host
         private void Browser_BrowserInitialized(object sender, EventArgs e)
         {
             Console.WriteLine("Browser Initialized");
-            //string url = "https://www.google.com";
-            //string url = "https://blockly-demo.appspot.com/static/demos/code/index.html";
-            //string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
         }
 
         private void Browser_Paint(object sender, OnPaintEventArgs e)
@@ -75,29 +73,76 @@ namespace Browser.Host
             Console.WriteLine("Loaded: " + e.IsLoading);
         }
 
-        public void MouseDown(int x, int y)
+        private IBrowserHost Host { get { return browser.GetBrowser().GetHost(); } }
+
+        static MouseButtonType ToMBType(int button)
         {
-            browser.GetBrowser().GetHost().SendMouseClickEvent(new MouseEvent(x, y, CefEventFlags.None), MouseButtonType.Left, false, 1);
+            switch ((MouseButton)button)
+            {
+                case MouseButton.Left: return MouseButtonType.Left;
+                case MouseButton.Middle: return MouseButtonType.Middle;
+                case MouseButton.Right: return MouseButtonType.Right;
+            }
+            return MouseButtonType.Left;
         }
 
-        public void MouseUp(int x, int y)
+        private CefEventFlags flags = CefEventFlags.None;
+
+        public void MouseDown(int x, int y, int button)
         {
-            browser.GetBrowser().GetHost().SendMouseClickEvent(new MouseEvent(x, y, CefEventFlags.None), MouseButtonType.Left, true, 1);
+            switch ((MouseButton)button)
+            {
+                case MouseButton.Left: flags |= CefEventFlags.LeftMouseButton; break;
+                case MouseButton.Middle: flags |= CefEventFlags.MiddleMouseButton; break;
+                case MouseButton.Right: flags |= CefEventFlags.RightMouseButton; break;
+            }
+            Host.SendMouseClickEvent(new MouseEvent(x, y, flags), ToMBType(button), false, 1);
+        }
+
+        public void MouseUp(int x, int y, int button)
+        {
+            switch ((MouseButton)button)
+            {
+                case MouseButton.Left: flags &= ~CefEventFlags.LeftMouseButton; break;
+                case MouseButton.Middle: flags &= ~CefEventFlags.MiddleMouseButton; break;
+                case MouseButton.Right: flags &= ~CefEventFlags.RightMouseButton; break;
+            }
+            Host.SendMouseClickEvent(new MouseEvent(x, y, flags), ToMBType(button), true, 1);
         }
 
         public void MouseMove(int x, int y)
         {
-            browser.GetBrowser().GetHost().SendMouseMoveEvent(new MouseEvent(x, y, CefEventFlags.None), false);
+            Host.SendMouseMoveEvent(new MouseEvent(x, y, flags), false);
         }
 
-        //        //private void Form1_KeyPress(object sender, KeyPressEventArgs e)
-        //        //{
-        //        //    KeyEvent k = new KeyEvent();
-        //        //    k.WindowsKeyCode = e.KeyChar;
-        //        //    k.Type = KeyEventType.Char;
-        //        //    k.IsSystemKey = false;
-        //        //    k.FocusOnEditableField = true;
-        //        //    browser.GetBrowser().GetHost().SendKeyEvent(k);
-        //        //}
+        public void KeyEvent(int type, int keyCode)
+        {
+            KeyEvent k = new KeyEvent();
+            k.WindowsKeyCode = keyCode;
+            k.Type = (KeyEventType)type;
+            k.IsSystemKey = false;
+            k.FocusOnEditableField = true;
+            Host.SendKeyEvent(k);
+        }
+
+        #region ContextMenu Handlers
+        public void OnBeforeContextMenu(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model)
+        {
+        }
+
+        public bool OnContextMenuCommand(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IContextMenuParams parameters, CefMenuCommand commandId, CefEventFlags eventFlags)
+        {
+            return true;
+        }
+
+        public void OnContextMenuDismissed(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame)
+        {
+        }
+
+        public bool RunContextMenu(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model, IRunContextMenuCallback callback)
+        {
+            return true;
+        }
+        #endregion
     }
 }
