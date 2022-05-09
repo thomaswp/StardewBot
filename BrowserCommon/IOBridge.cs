@@ -87,6 +87,12 @@ namespace Browser.Common
             buffer.RemoteRequestAsync(args.ToBytes());
         }
 
+        public void MouseButtonEvent(int x, int y, int button, bool down)
+        {
+            var args = new Args("MouseButtonEvent").Write(x).Write(y).Write(button).Write(down);
+            buffer.RemoteRequestAsync(args.ToBytes());
+        }
+
         public void MouseMove(int x, int y)
         {
             var args = new Args("MouseMove").Write(x).Write(y);
@@ -126,6 +132,12 @@ namespace Browser.Common
                 writer.Write(x);
                 return this;
             }
+
+            internal Args Write(bool x)
+            {
+                writer.Write(x);
+                return this;
+            }
         }
 
         private class Params
@@ -152,6 +164,11 @@ namespace Browser.Common
                     else if (param.ParameterType == typeof(string))
                     {
                         value = reader.ReadString();
+                        //Console.WriteLine($"Setting {param.Name} to {value}");
+                    }
+                    else if (param.ParameterType == typeof(bool))
+                    {
+                        value = reader.ReadBoolean();
                         //Console.WriteLine($"Setting {param.Name} to {value}");
                     }
                     else
@@ -185,6 +202,12 @@ namespace Browser.Common
         void MouseDown(int x, int y, int button);
 
         void MouseUp(int x, int y, int button);
+
+        void MouseButtonEvent(int x, int y, int button, bool down)
+        {
+            if (down) MouseDown(x, y, button);
+            else MouseUp(x, y, button);
+        }
 
         void MouseMove(int x, int y);
 

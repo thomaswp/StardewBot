@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using BlocklyBridge;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -56,16 +57,15 @@ namespace StardewBot
                 if (robot != null) Dispatcher.SetTarget(robot);
             });
 
-            Overlay = new WebOverlay();
+            // What about resize..?
+            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            Overlay = new WebOverlay(helper, width, height);
         }
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
-            //e.SpriteBatch.Begin();
-            var texture = Overlay.ReadTexture(e.SpriteBatch.GraphicsDevice);
-            if (texture == null) return;
-            //e.SpriteBatch.Draw(texture, new Vector2(0, 0), Color.White);
-            //e.SpriteBatch.End();
+            Overlay.Draw(e.SpriteBatch);
         }
 
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
@@ -75,6 +75,7 @@ namespace StardewBot
                 result();
             }
             if (robot != null) robot.Update();
+            Overlay.Update();
         }
 
         private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)

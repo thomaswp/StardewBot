@@ -3,7 +3,7 @@ using SharedMemory;
 using System;
 using System.Threading;
 
-namespace BrowserCommon
+namespace Browser.Common
 {
     public class GraphicsReader : IDisposable
     {

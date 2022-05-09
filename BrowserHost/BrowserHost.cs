@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Browser.Host
 {
-    public class BrowserHost : IBrowserUI, IContextMenuHandler
+    public class BrowserHost : IBrowserUI, IContextMenuHandler, ILifeSpanHandler
     {
 
         private ChromiumWebBrowser browser;
@@ -20,6 +20,7 @@ namespace Browser.Host
         private IOBridge bridge;
 
         public bool IsDisposed { get; internal set; }
+        private IBrowserHost Host { get { return browser.GetBrowser().GetHost(); } }
 
         public BrowserHost(Interchange interchange)
         {
@@ -34,7 +35,10 @@ namespace Browser.Host
             browser.BrowserInitialized += Browser_BrowserInitialized;
             browser.LoadingStateChanged += Browser_LoadingStateChanged;
             browser.Paint += Browser_Paint;
+            browser.LifeSpanHandler = this;
             browser.MenuHandler = this;
+            // Better idea: just don't use JS dialogs
+            //browser.JsDialogHandler = this;
             
             bridge = new IOBridge(this);
         }
@@ -73,7 +77,6 @@ namespace Browser.Host
             Console.WriteLine("Loaded: " + e.IsLoading);
         }
 
-        private IBrowserHost Host { get { return browser.GetBrowser().GetHost(); } }
 
         static MouseButtonType ToMBType(int button)
         {
@@ -125,7 +128,7 @@ namespace Browser.Host
             Host.SendKeyEvent(k);
         }
 
-        #region ContextMenu Handlers
+        #region ContextMenu and Lifespan Handlers
         public void OnBeforeContextMenu(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model)
         {
         }
@@ -143,6 +146,47 @@ namespace Browser.Host
         {
             return true;
         }
+
+        public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            newBrowser = chromiumWebBrowser;
+            return true;
+        }
+
+        public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            
+        }
+
+        public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            return true;
+        }
+
+        public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            
+        }
+
+        //public bool OnJSDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, CefJsDialogType dialogType, string messageText, string defaultPromptText, IJsDialogCallback callback, ref bool suppressMessage)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public bool OnBeforeUnloadDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, string messageText, bool isReload, IJsDialogCallback callback)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public void OnResetDialogState(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public void OnDialogClosed(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        //{
+        //    throw new NotImplementedException();
+        //}
         #endregion
     }
 }
