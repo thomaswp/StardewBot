@@ -8,9 +8,8 @@ namespace Browser.Host
 
         static void Main(string[] args)
         {
-            new BrowserHost(new Interchange());
-
-            Console.ReadLine();
+            var host = new BrowserHost(new Interchange());
+            while (!host.IsDisposed) ;
         }
 
 

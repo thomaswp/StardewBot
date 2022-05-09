@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Browser.Common
 {
-    public static class BrowserSettings
+    public static class Settings
     {
 
         public const string MEMORY_NAME = @"BrowserBuffer";

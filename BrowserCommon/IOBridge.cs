@@ -60,7 +60,19 @@ namespace Browser.Common
 
         public void Dispose()
         {
+            if (!IsHost) Shutdown();
             buffer.Dispose();
+        }
+
+        public void StartBrowser(int width, int height, string url)
+        {
+            var args = new Args("StartBrowser").Write(width).Write(height).Write(url);
+            buffer.RemoteRequestAsync(args.ToBytes());
+        }
+
+        public void Shutdown()
+        {
+            buffer.RemoteRequest(new Args("Shutdown").ToBytes());
         }
 
         public void MouseDown(int x, int y)
@@ -102,6 +114,12 @@ namespace Browser.Common
                 writer.Write(x);
                 return this;
             }
+
+            internal Args Write(string x)
+            {
+                writer.Write(x);
+                return this;
+            }
         }
 
         private class Params
@@ -125,6 +143,11 @@ namespace Browser.Common
                         value = reader.ReadInt32();
                         //Console.WriteLine($"Setting {param.Name} to {value}");
                     }
+                    else if (param.ParameterType == typeof(string))
+                    {
+                        value = reader.ReadString();
+                        //Console.WriteLine($"Setting {param.Name} to {value}");
+                    }
                     else
                     {
                         throw new Exception("Unknow param type");
@@ -141,20 +164,16 @@ namespace Browser.Common
         }
 
     }
-    //class Callable : Attribute
-    //{
-
-    //}
 
     public interface IBrowserUI
     {
-        //[Callable]
+        void StartBrowser(int width, int height, string url);
+        void Shutdown();
+
         void MouseDown(int x, int y);
 
-        //[Callable]
         void MouseUp(int x, int y);
 
-        //[Callable]
         void MouseMove(int x, int y);
     }
 }

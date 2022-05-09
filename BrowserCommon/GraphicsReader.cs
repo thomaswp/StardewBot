@@ -14,15 +14,20 @@ namespace BrowserCommon
 
         public bool HasNewBitmap { get;  private set; }
 
-        public GraphicsReader()
+        private int width, height;
+        private int Size { get { return width * height * 4; } }
+
+        public GraphicsReader(int width, int height)
         {
-            buffer = new CircularBuffer(BrowserSettings.MEMORY_NAME);
+            this.width = width;
+            this.height = height;
+            buffer = new CircularBuffer(Settings.MEMORY_NAME);
             Action a = new Action(() =>
             {
 
                 while (!buffer.ShuttingDown)
                 {
-                    byte[] bytes = new byte[BrowserSettings.NODE_SIZE];
+                    byte[] bytes = new byte[Size];
                     int read = buffer.Read(bytes);
                     if (read == 0) continue;
                     Console.WriteLine("Read texture");

@@ -12,19 +12,19 @@ namespace Browser.Host
 {
     public class Interchange : IDisposable
     {
-        public const int NODES = 500;
+        public const int NODES = 30;
 
         private readonly CircularBuffer buffer;
 
         public Interchange()
         {
-            buffer = new CircularBuffer(BrowserSettings.MEMORY_NAME, NODES, BrowserSettings.NODE_SIZE);
+            buffer = new CircularBuffer(Settings.MEMORY_NAME, NODES, Settings.NODE_SIZE);
 
         }
     
         public void Write(byte[] bytes)
         {
-            if (bytes.Length > BrowserSettings.NODE_SIZE)
+            if (bytes.Length > Settings.NODE_SIZE)
             {
                 throw new Exception("Too much data!");
             }
