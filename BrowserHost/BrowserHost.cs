@@ -58,6 +58,11 @@ namespace Browser.Host
             IsDisposed = true;
         }
 
+        public void Refresh()
+        {
+            browser.GetBrowser().Reload();
+        }
+
         private void Browser_BrowserInitialized(object sender, EventArgs e)
         {
             Console.WriteLine("Browser Initialized");

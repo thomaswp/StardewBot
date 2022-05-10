@@ -72,7 +72,13 @@ namespace Browser.Common
 
         public void Shutdown()
         {
+            // Go synchronous
             buffer.RemoteRequest(new Args("Shutdown").ToBytes());
+        }
+
+        public void Refresh()
+        {
+            buffer.RemoteRequestAsync(new Args("Refresh").ToBytes());
         }
 
         public void MouseDown(int x, int y, int button)
@@ -212,5 +218,7 @@ namespace Browser.Common
         void MouseMove(int x, int y);
 
         void KeyEvent(int type, int keyCode);
+
+        void Refresh();
     }
 }

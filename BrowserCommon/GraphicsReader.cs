@@ -13,6 +13,7 @@ namespace Browser.Common
         private Thread thread;
 
         public bool HasNewBitmap { get;  private set; }
+        public bool Failed { get; private set; }
 
         private int width, height;
         private int Size { get { return width * height * 4; } }
@@ -21,7 +22,15 @@ namespace Browser.Common
         {
             this.width = width;
             this.height = height;
-            buffer = new CircularBuffer(Settings.MEMORY_NAME);
+            try
+            {
+                buffer = new CircularBuffer(Settings.MEMORY_NAME);
+            } catch (Exception e)
+            {
+                Failed = true;
+                Console.WriteLine("Failed to initialize GraphicsReader");
+                return;
+            }
             Action a = new Action(() =>
             {
 

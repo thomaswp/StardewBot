@@ -2,6 +2,7 @@
 using Browser.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SharedMemory;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -14,7 +15,7 @@ namespace StardewBot
 {
 
 
-    public class WebOverlay : IDisposable
+    public class WebOverlay : IDisposable, IKeyboardSubscriber
     {
 
         class Menu : IClickableMenu
@@ -46,10 +47,12 @@ namespace StardewBot
         private IOBridge bridge;
         private int width, height;
         private IModHelper helper;
+        private bool externalBrowser;
 
         private Menu menu;
 
         public bool Showing { get; private set; }
+        public bool Selected { get => Showing; set { } }
 
         public WebOverlay(IModHelper helper, int width, int height)
             
@@ -63,20 +66,35 @@ namespace StardewBot
             string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
             bridge.StartBrowser(width, height, url);
             reader = new GraphicsReader(width, height);
+            if (reader.Failed)
+            {
+                externalBrowser = true;
+                return;
+            }
 
             helper.Events.Input.CursorMoved += Input_CursorMoved;
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Input.ButtonReleased += Input_ButtonReleased;
             helper.Events.Input.MouseWheelScrolled += Input_MouseWheelScrolled;
-            //helper.Input.
 
             menu = new Menu(this, width, height);
+        }
+
+        private void KeyboardInput_CharEntered(object sender, CharacterEventArgs e)
+        {
+            Logger.Log("Keyboard: " + e.Character);
+            if (!Showing) return; 
+            bridge.KeyEvent(3, e.Character);
         }
 
         public void ToggleShowing()
         {
             Showing = !Showing;
             Game1.activeClickableMenu = Showing ? menu : null;
+            if (Showing)
+            {
+                Game1.keyboardDispatcher.Subscriber = this;
+            }
         }
 
         private void Input_MouseWheelScrolled(object sender, MouseWheelScrolledEventArgs e)
@@ -91,6 +109,15 @@ namespace StardewBot
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
+
+            if (e.Button == SButton.X)
+            {
+                ToggleShowing();
+            }
+            if (Showing && e.Button == SButton.R)
+            {
+                bridge.Refresh();
+            }
             //Logger.Log(e.Button);
             //if (e.Button == SButton.X) ToggleShowing();
             HandleButtonEvent(e.Button, e.Cursor, true);
@@ -143,20 +170,37 @@ namespace StardewBot
 
         public void Update()
         {
+            if (externalBrowser) return;
             //Logger.Log(helper.Input.GetState(SButton.X));
             //Microsoft.Xna.Framework.Input.Keyboard.GetState().GetPressedKeys
-            if (helper.Input.GetState(SButton.X) == SButtonState.Pressed)
-            {
-                ToggleShowing();
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (!Showing) return;
+            if (externalBrowser || !Showing) return;
             var texture = ReadTexture(spriteBatch.GraphicsDevice);
             if (texture == null) return;
             spriteBatch.Draw(texture, new Vector2(0, 0), new Color(255, 255, 255, 255));
+        }
+
+        public void RecieveTextInput(char inputChar)
+        {
+            bridge.KeyEvent(3, inputChar);
+        }
+
+        public void RecieveTextInput(string text)
+        {
+            Logger.Log("Receiving: " + text);
+        }
+
+        public void RecieveCommandInput(char command)
+        {
+            bridge.KeyEvent(3, command);
+        }
+
+        public void RecieveSpecialInput(Keys key)
+        {
+            Logger.Log("Receiving: " + key);
         }
     }
 }
