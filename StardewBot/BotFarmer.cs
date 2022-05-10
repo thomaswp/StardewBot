@@ -233,7 +233,7 @@ namespace StardewBot
 			{
 				Game1.drawTool(dummyFarmer);
 			}
-			Logger.Log("draw");
+			//Logger.Log("draw");
 			//dummyFarmer.draw(b, alpha);
 		}
 
@@ -247,7 +247,7 @@ namespace StardewBot
 					((Tool)items[i]).tickUpdate(time, dummyFarmer);
 				}
 			}
-			Logger.Log("update");
+			//Logger.Log("update");
 			dummyFarmer.update(time, location, id, move);
 		}
 

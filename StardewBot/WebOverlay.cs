@@ -6,26 +6,55 @@ using SharedMemory;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 using System;
 using System.Threading;
 
 namespace StardewBot
 {
+
+
     public class WebOverlay : IDisposable
     {
-        private readonly CircularBuffer buffer;
+
+        class Menu : IClickableMenu
+        {
+            WebOverlay overlay;
+
+            public Menu(WebOverlay overlay, int width, int height)
+                : base(0, 0, width, height)
+            {
+                this.overlay = overlay;
+            }
+
+            public override void update(GameTime time)
+            {
+                base.update(time);
+            }
+
+            public override void draw(SpriteBatch b)
+            {
+                base.draw(b);
+                overlay.Draw(b);
+                drawMouse(b);
+            }
+        }
 
         Texture2D cachedTexture;
 
         private GraphicsReader reader;
         private IOBridge bridge;
-        private int frames;
         private int width, height;
+        private IModHelper helper;
+
+        private Menu menu;
 
         public bool Showing { get; private set; }
 
         public WebOverlay(IModHelper helper, int width, int height)
+            
         {
+            this.helper = helper;
             this.width = width;
             this.height = height;
             bridge = new IOBridge();
@@ -34,19 +63,20 @@ namespace StardewBot
             string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
             bridge.StartBrowser(width, height, url);
             reader = new GraphicsReader(width, height);
-            buffer = new CircularBuffer(Settings.MEMORY_NAME);
 
             helper.Events.Input.CursorMoved += Input_CursorMoved;
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Input.ButtonReleased += Input_ButtonReleased;
             helper.Events.Input.MouseWheelScrolled += Input_MouseWheelScrolled;
             //helper.Input.
+
+            menu = new Menu(this, width, height);
         }
 
         public void ToggleShowing()
         {
             Showing = !Showing;
-            //Game1.paused = Showing;
+            Game1.activeClickableMenu = Showing ? menu : null;
         }
 
         private void Input_MouseWheelScrolled(object sender, MouseWheelScrolledEventArgs e)
@@ -61,7 +91,8 @@ namespace StardewBot
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if (e.Button == SButton.X) ToggleShowing();
+            //Logger.Log(e.Button);
+            //if (e.Button == SButton.X) ToggleShowing();
             HandleButtonEvent(e.Button, e.Cursor, true);
         }
 
@@ -70,7 +101,7 @@ namespace StardewBot
             if (!Showing) return;
             var pos = cursor.ScreenPixels;
             int x = (int)pos.X, y = (int)pos.Y;
-            Logger.Log($"({x}, {y})");
+            //Logger.Log($"({x}, {y})");
             if (button == SButton.MouseLeft) bridge.MouseButtonEvent(x, y, (int)MouseButton.Left, down);
             else if (button == SButton.MouseMiddle) bridge.MouseButtonEvent(x, y, (int)MouseButton.Middle, down);
             else if (button == SButton.MouseRight) bridge.MouseButtonEvent(x, y, (int)MouseButton.Right, down);
@@ -112,7 +143,12 @@ namespace StardewBot
 
         public void Update()
         {
-
+            //Logger.Log(helper.Input.GetState(SButton.X));
+            //Microsoft.Xna.Framework.Input.Keyboard.GetState().GetPressedKeys
+            if (helper.Input.GetState(SButton.X) == SButtonState.Pressed)
+            {
+                ToggleShowing();
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)

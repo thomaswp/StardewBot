@@ -65,7 +65,7 @@ namespace StardewBot
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
-            Overlay.Draw(e.SpriteBatch);
+            //Overlay.Draw(e.SpriteBatch);
         }
 
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
