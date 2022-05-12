@@ -1,4 +1,5 @@
 ﻿using BlocklyBridge;
+using Farmtronics;
 using StardewValley;
 using System;
 using System.Collections.Generic;
@@ -12,15 +13,15 @@ namespace StardewBot
     {
         public readonly string Guid;
         public readonly string Name;
-        public readonly BotFarmer NPC;
+        public readonly Bot Bot;
 
         private Dictionary<Type, IBehavior> behaviors = new Dictionary<Type, IBehavior>();
         private MethodQueue queue = new BlocklyBridge.MethodQueue();
 
-        public BotController(BotFarmer npc, string guid)
+        public BotController(Bot bot, string guid)
         {
-            NPC = npc;
-            Name = npc.displayName;
+            Bot = bot;
+            Name = bot.Name;
             Guid = guid;
 
             ModEntry.Dispatcher.Register(this);
