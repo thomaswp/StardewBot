@@ -1,5 +1,6 @@
 ﻿using BlocklyBridge;
 using Farmtronics;
+using Microsoft.Xna.Framework;
 using StardewValley;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,10 @@ namespace StardewBot
             ModEntry.Dispatcher.Register(this);
 
             foreach (IBehavior behavior in new IBehavior[] {
+                new Events(this),
                 new Movement(this),
+                new Sensing(this),
+                new Tools(this),
             })
             {
                 behaviors.Add(behavior.GetType(), behavior);
@@ -55,15 +59,15 @@ namespace StardewBot
             throw new NotImplementedException("Unknown type: " + declaringType.Name);
         }
 
-        public void Update()
+        public void Update(GameTime time)
         {
-            foreach (var behavior in behaviors.Values) behavior.Update();
+            foreach (var behavior in behaviors.Values) behavior.Update(time);
             queue.Update();
         }
     }
 
     public interface IBehavior
     {
-        void Update();
+        void Update(GameTime time);
     }
 }

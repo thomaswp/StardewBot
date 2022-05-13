@@ -5,7 +5,6 @@
 // It also contains some related methods to get info about objects and items,
 // which you may well find on a tile.
 
-using System;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -14,7 +13,7 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
 using StardewValley.TerrainFeatures;
-
+using System.Collections.Generic;
 
 namespace Farmtronics {
 	public static class TileInfo {
@@ -144,6 +143,72 @@ namespace Farmtronics {
 
 		//	return result;
 		//}
+
+		public static List<ResourceClump> GetResourceClumps(this GameLocation loc, Vector2 xy)
+        {
+			List<ResourceClump> list = new List<ResourceClump>();
+            // check resource clumps (these span multiple tiles)
+            var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
+            foreach (var clump in loc.resourceClumps)
+            {
+                if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) list.Add(clump);
+            }
+			return list;
+        }
+
+		public static TerrainFeature GetTerrainFeature(this GameLocation loc, Vector2 xy)
+        {
+			if (loc.terrainFeatures.TryGetValue(xy, out var feature)) return feature;
+			var xyBounds = new Rectangle((int)(xy.X * 64), (int)(xy.Y * 64), 64, 64);
+            foreach (LargeTerrainFeature ltf in loc.largeTerrainFeatures)
+            {
+				if (ltf.getBoundingBox().Intersects(xyBounds)) return ltf;
+            }
+			return null;
+        }
+
+		public static Object GetObject(this GameLocation loc, Vector2 xy)
+		{
+			if (!loc.objects.TryGetValue(xy, out var obj)) return null;
+			return obj;
+		}
+
+		public static Character GetCharacter(this GameLocation loc, Vector2 xy)
+        {
+			if (Game1.player.currentLocation == loc && Game1.player.getTileLocation() == xy) return Game1.player;
+            foreach (var farmer in Game1.otherFarmers.Values)
+            {
+                if (farmer.currentLocation == loc && farmer.getTileLocation() == xy) return farmer;
+            }
+            foreach (var character in loc.characters)
+            {
+                if (character.getTileLocation() == xy)
+                {
+                    return character;
+                }
+            }
+			return null;
+        }
+
+		public static bool IsTileWater(this GameLocation loc, Vector2 xy)
+        {
+			return loc.isWaterTile((int)xy.X, (int)xy.Y);
+        }
+
+		public static bool IsTileACrop(this GameLocation loc, Vector2 xy)
+		{
+			return loc.isCropAtTile((int)xy.X, (int)xy.Y);
+		}
+
+		public static bool DoesTileHaveProperty(this GameLocation loc, string property, Vector2 xy)
+		{
+			//	// check water and other such terrain properties
+			int x = (int)xy.X;
+            int y = (int)xy.Y;
+			return loc.doesTileHaveProperty(x, y, property, "Back") != null;
+        }
+
+
 
 		//public static ValMap GetInfo(GameLocation loc, Vector2 xy) {
 		//	// check farmers

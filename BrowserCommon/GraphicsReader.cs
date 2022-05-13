@@ -28,7 +28,7 @@ namespace Browser.Common
             } catch (Exception e)
             {
                 Failed = true;
-                Console.WriteLine("Failed to initialize GraphicsReader");
+                Console.WriteLine("Failed to initialize GraphicsReader: " + e.Message);
                 return;
             }
             Action a = new Action(() =>

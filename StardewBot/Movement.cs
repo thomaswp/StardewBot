@@ -11,28 +11,25 @@ using Farmtronics;
 
 namespace StardewBot
 {
-    [ScriptableBehavior("Movement", 60)]
-    public class Movement : IBehavior
+
+    public enum Direction
     {
-        public readonly BotController Controller;
-        public Bot Bot { get { return Controller.Bot; } }
+        Up,
+        Right,
+        Down,
+        Left
+    }
 
-        public const int INSTANT_ACTION_DURATION = 5;
+    [ScriptableBehavior("Movement", 60)]
+    public class Movement : ActionCategory
+    {
 
-        private readonly static AsyncMethod delay = new AsyncMethod().Wait(INSTANT_ACTION_DURATION);
-        private AsyncMethod finishAction => new AsyncMethod().UpdateUntil(() => !Bot.IsPerformingAction);
-
-        //private bool inDialog = false;
-
-        public GameLocation Location { get { return Bot.CurrentLocation; } }
-
-        public Movement(BotController bot)
+        public Movement(BotController controller)
+            : base(controller)
         {
-            Controller = bot;
 
-            ModEntry.ModHelper.Events.Input.ButtonPressed += Input_ButtonPressed;
         }
-
+        
         public static Vector2 DirToVec(int direction)
         {
             switch ((Direction) direction)
@@ -58,79 +55,22 @@ namespace StardewBot
         //    if (direction.X < 0) Bot.SetMovingLeft(true);
         //}
 
-        private bool IsPassable(Vector2 tile)
-        {
-            // TODO: This doesn't work with grass - need to see how Farmer does it
-            // Probably need to use isCollidingPosition
-            return Location.isTileLocationTotallyClearAndPlaceable(tile);
-        }
-
-        private void Input_ButtonPressed(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
-        {
-            if (e.Button == SButton.MouseRight || e.Button == SButton.MouseLeft)
-            {
-                Vector2 tile = e.Cursor.Tile;
-                var location = Game1.player.currentLocation;
-                var loc = new xTile.Dimensions.Location((int)tile.X, (int)tile.Y);
-                //var rect = new Rectangle(loc.X, loc.Y, 1, 1);
-                //Logger.Log($"tile {tile} passable {location.isTilePassable(loc, Game1.viewport)}");
-                //Logger.Log($"tile {tile} colliding {location.isCollidingPosition(rect, Game1.viewport, true)}");
-                Logger.Log($"tile {tile} placable {location.isTileLocationTotallyClearAndPlaceable(tile)} in {Location.Name}");
-                if (e.Cursor.Tile == Bot.TileLocation)
-                {
-                    OnClick();
-                }
-            }
-        }
-
-        [ScriptableEvent(false)]
-        public void OnClick()
-        {
-            BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
-        }
-
-        //[ScriptableEvent(false)]
-        //public void OnDialogStart()
-        //{
-        //    BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
-        //}
-
-        //[ScriptableEvent(false)]
-        //public void OnDialogEnd()
-        //{
-        //    BlocklyGenerator.SendEvent(Bot, System.Reflection.MethodBase.GetCurrentMethod().Name);
-        //}
-
-        [ScriptableMethod]
-        public AsyncMethod UseTool()
-        {
-            return new AsyncMethod()
-                .Do(() => Bot.UseTool())
-                .Do(finishAction);
-        }
-
         [ScriptableMethod]
         public AsyncMethod TurnRight()
         {
-            return new AsyncMethod()
-                .Do(() => Bot.Rotate(1))
-                .Do(delay);
+            return DoInstantly(() => Bot.Rotate(1));
         }
 
         [ScriptableMethod]
         public AsyncMethod TurnLeft()
         {
-            return new AsyncMethod()
-                .Do(() => Bot.Rotate(-1))
-                .Do(delay);
+            return DoInstantly(() => Bot.Rotate(-1));
         }
 
         [ScriptableMethod]
         public AsyncMethod FaceDirection(Direction dir)
         {
-            return new AsyncMethod()
-                .Do(() => Bot.FacingDirection = (int)dir)
-                .Do(delay);
+            return DoInstantly(() => Bot.FacingDirection = (int)dir);
         }
 
         //[ScriptableMethod]

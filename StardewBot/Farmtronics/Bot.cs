@@ -45,6 +45,31 @@ namespace Farmtronics {
 			}
 		}
 
+		public Vector2 FacingTile
+		{
+			get
+			{
+				return farmer.getTileLocation() + new Vector2(
+					DxForDirection(FacingDirection),
+					DyForDirection(FacingDirection)
+				);
+			}
+		}
+
+		public Rectangle FacingPositionBoundingBox
+        {
+            get
+            {
+				var newBounds = farmer.GetBoundingBox();
+				newBounds.X += DxForDirection(FacingDirection) * 64;
+				newBounds.Y += DyForDirection(FacingDirection) * 64;
+				return newBounds;
+			}
+        }
+
+		public bool IsFacingClear => CurrentLocation.isCollidingPosition(
+			FacingPositionBoundingBox, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
+
 		//public Vector2 TileLocation => farmer.getTileLocation();
 
 		[XmlIgnore]
@@ -448,11 +473,8 @@ namespace Farmtronics {
 			farmer.setTileLocation(TileLocation);
 		}
 
-		// Apply the currently-selected item as a tool (or weapon) on
-		// the square in front of the bot.
-		public void UseTool() {
-			if (farmer == null || inventory == null) return;
-			Tool tool = inventory[CurrentToolIndex] as Tool;
+		private void UseTool(Tool tool)
+        {
 			if (tool == null) return;
 			int useX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
 			int useY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
@@ -464,6 +486,28 @@ namespace Farmtronics {
 			// Count how many frames into the swipe effect we are.
 			// We'll actually apply the tool effect later, in Update.
 			toolUseFrame = 1;
+		}
+
+		// Apply the currently-selected item as a tool (or weapon) on
+		// the square in front of the bot.
+		public void UseTool() {
+			if (farmer == null || inventory == null) return;
+			Tool tool = inventory[CurrentToolIndex] as Tool;
+			UseTool(tool);
+		}
+
+		public void UseTool(string name)
+		{
+			for (int i = 0; i < inventory.Count; i++)
+			{
+				Tool tool = inventory[i] as Tool;
+				if (tool == null) continue;
+				if (tool.BaseName == name)
+				{
+					CurrentToolIndex = i;
+					UseTool(tool);
+				}
+			}
 		}
 
 		// Attempt to harvest the crop in front of the bot.
@@ -631,7 +675,7 @@ namespace Farmtronics {
 			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			if (debug) Logger.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}");
 
-			Controller.Update();
+			Controller.Update(gameTime);
 
 			// Weird things happen if we try to update bots in locations other than
 			// the current location.  We should try harder to get that to work sometime,
@@ -914,5 +958,5 @@ namespace Farmtronics {
 			InitShell();
 			Game1.activeClickableMenu = new BotUIMenu(this);
 		}
-	}
+    }
 }
