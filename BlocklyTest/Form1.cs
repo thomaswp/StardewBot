@@ -21,13 +21,16 @@ namespace BlocklyTest
             private set;
         }
 
+        public TextBox Output => textBox1;
+
         private MethodQueue queue = new MethodQueue();
-        private Functions functions = new Functions();
+        private Functions functions;
 
         public Form1()
         {
             InitializeComponent();
             timer1.Enabled = true;
+            functions = new Functions(this);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -47,6 +50,7 @@ namespace BlocklyTest
                     Logger.Warn("Failed to load saved code: " + Properties.Settings.Default.Code);
                 }
                 Dispatcher.SetTarget(this);
+                BlocklyGenerator.SendEvent(this, "OnStart");
             });
 
             Dispatcher.Register(this);
