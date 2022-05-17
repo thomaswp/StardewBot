@@ -14,6 +14,7 @@ using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
+using BlocklyBridge;
 
 namespace Farmtronics {
 	public static class TileInfo {
@@ -148,10 +149,12 @@ namespace Farmtronics {
         {
 			List<ResourceClump> list = new List<ResourceClump>();
             // check resource clumps (these span multiple tiles)
-            var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
+            //var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
             foreach (var clump in loc.resourceClumps)
             {
-                if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) list.Add(clump);
+				Logger.Log(clump.GetType().Name + ": " + clump.tile.Value);
+				//if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) list.Add(clump);
+				if (clump.occupiesTile((int)xy.X, (int)xy.Y)) list.Add(clump);
             }
 			return list;
         }

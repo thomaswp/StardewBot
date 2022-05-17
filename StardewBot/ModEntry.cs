@@ -39,6 +39,10 @@ namespace StardewBot
 
         internal static ModEntry instance;
         public static IModHelper helper => ModHelper;
+        
+        // May not actually need to save this...
+        public static ProgramState State { get; private set; }
+        const string PROGRAMS_FILE = "programs.json";
 
         /*********
         ** Public methods
@@ -64,18 +68,33 @@ namespace StardewBot
 
             Logger.Implementation = new StardewLogger(Monitor);
 
+            State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
+
             Dispatcher = new Dispatcher("127.0.0.1", 8000, action => queuedActions.Enqueue(action));
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             Dispatcher.Start(assembly.GetTypes(), () =>
             {
                 Logger.Log("Connected!!!");
+                Dispatcher.State = State;
+                Logger.Log("Loading: " + State.ToJSON());
+                if (Bot.instances.Count > 0)
+                {
+                    Dispatcher.SetTarget(Bot.instances[0].Controller);
+                }
             });
+            Dispatcher.OnSave += Dispatcher_OnSave;
 
             // What about resize..?
             int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             Overlay = new WebOverlay(helper, width, height);
+        }
+
+        private void Dispatcher_OnSave(ProgramState obj)
+        {
+            State = obj;
+            helper.Data.WriteJsonFile(PROGRAMS_FILE, obj);
         }
 
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)

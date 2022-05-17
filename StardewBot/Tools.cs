@@ -11,7 +11,7 @@ namespace StardewBot
     {
         Hoe,
         Axe,
-        PickAxe,
+        Pickaxe,
         Watering_Can,
         Scythe,
     }

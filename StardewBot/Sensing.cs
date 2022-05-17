@@ -97,6 +97,7 @@ namespace StardewBot
         private bool IsStone(Vector2 tile)
         {
             //var feature = Location.GetTerrainFeature(tile);
+            // TODO: This doesn't work :(
             return IsClumpType(tile, STONE);
         }
 

@@ -93,7 +93,7 @@ namespace Farmtronics {
 		Vector2 targetPos;	// position we're moving to, in pixels
 
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
-		static List<Bot> instances = new List<Bot>();
+		public readonly static List<Bot> instances = new List<Bot>();
 
 		static int uniqueFarmerID = 1;
 		const float speed = 64;		// pixels/sec
@@ -768,7 +768,7 @@ namespace Farmtronics {
                 Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
 
 				// TODO: stop interpreter when picked up
-				//if (shell != null) shell.interpreter.Stop();
+				ModEntry.Dispatcher.Unregister(Controller);
 				instances.Remove(this);
                 return false;
             }
