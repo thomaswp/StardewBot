@@ -143,6 +143,9 @@ namespace StardewBot
             //NPC robin = Game1.getCharacterFromName("Robin");
             //NPC bot = new NPC(robin.Sprite, Vector2.Zero, 0, "Robot");
 
+            // TODO: Remove
+            Game1.options.musicVolumeLevel = 0;
+
             var player = Game1.player;
             player.addItemToInventory(new Bot(null));
 
