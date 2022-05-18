@@ -7,12 +7,14 @@ using Farmtronics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using StardewBot.Levels;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
+using xTile.Layers;
 
 namespace StardewBot
 {
@@ -43,6 +45,7 @@ namespace StardewBot
         // May not actually need to save this...
         public static ProgramState State { get; private set; }
         const string PROGRAMS_FILE = "programs.json";
+
 
         /*********
         ** Public methods
@@ -136,14 +139,14 @@ namespace StardewBot
 
         private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
         {
-            Farm farm = Game1.getFarm();
+            //Farm farm = Game1.getFarm();
             //NPC robin = Game1.getCharacterFromName("Robin");
             //NPC bot = new NPC(robin.Sprite, Vector2.Zero, 0, "Robot");
 
             var player = Game1.player;
             player.addItemToInventory(new Bot(null));
 
-
+            Level.LoadLevel("loops1");
 
             //BotFarmer bot = new BotFarmer("Robot");
 
@@ -158,7 +161,6 @@ namespace StardewBot
             // print button presses to the console window
             //Monitor.Log($"Spawned robot!!: {bot.position}", LogLevel.Debug);
         }
-
 
         /*********
         ** Private methods
@@ -220,6 +222,7 @@ namespace StardewBot
         public void OnSaveLoaded(object sender, SaveLoadedEventArgs args)
         {
             if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+            Level.LoadAssets(Helper);
         }
     }
 }
