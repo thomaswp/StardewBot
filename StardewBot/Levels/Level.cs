@@ -23,17 +23,20 @@ namespace StardewBot.Levels
         private const string MapPathRoot = "assets/maps/";
         private const string FieldMapPath = MapPathRoot + "field.tmx";
 
-        protected GameLocation levelLocation;
+        protected Map levelMap;
         protected Point botStart;
+        protected Point levelOffset;
         protected Point? botGoal;
+        protected int startFacingDir;
         protected Bot bot;
 
         public static GameLocation FieldLocation;
+        static Dictionary<string, Level> levelsDict = new();
 
         protected void LoadLocation(IModHelper helper)
         {
-            string mapAssetKey = helper.ModContent.GetInternalAssetName(MapPathRoot + MapName + ".tmx").BaseName;
-            levelLocation = new GameLocation(mapAssetKey, "temp_" + MapName) { IsOutdoors = true, IsFarm = false };
+            //string mapAssetKey = helper.ModContent.GetInternalAssetName(MapPathRoot + MapName + ".tmx").BaseName;
+            levelMap = helper.ModContent.Load<Map>(MapPathRoot + MapName + ".tmx");
 
             //foreach (var tilesheet in FieldLocation.Map.TileSheets)
             //{
@@ -45,10 +48,10 @@ namespace StardewBot.Levels
         {
             var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30);
 
-            Layer back = levelLocation.Map.GetLayer("Back");
-            var anchor = FindTileWithProperty(back, "Anchor");
-            var start = FindTileWithProperty(back, "BotStart");
-            var goal = FindTileWithProperty(back, "BotGoal");
+            Layer back = levelMap.GetLayer("Back");
+            var anchor = FindTilePointWithProperty(back, "Anchor");
+            var start = FindTilePointWithProperty(back, "BotStart");
+            var goal = FindTilePointWithProperty(back, "BotGoal");
             Logger.Log(anchor);
             Logger.Log(start);
             Logger.Log(goal);
@@ -68,18 +71,27 @@ namespace StardewBot.Levels
             Point offset = (Point)(entry - anchor);
             botStart = (Point)(start + offset);
             botGoal = goal + offset;
-            Logger.Log("Offset: " + anchor);
+            levelOffset = offset;
+            Logger.Log("Offset: " + offset);
 
-            Tile baseTile = FieldLocation.Map.GetLayer("Back").Tiles[0, 0];
+            string facingStr = back.Tiles[start.Value.X, start.Value.Y].Properties["Facing"];
+            if (int.TryParse(facingStr, out int dir)) startFacingDir = dir;
 
-            foreach (var layer in levelLocation.Map.Layers)
+            Tile baseSpringTile = FieldLocation.Map.GetLayer("Back").Tiles[0, 0];
+            Tile basePathsTile = FieldLocation.Map.GetLayer("Paths").Tiles[0, 0];
+
+            foreach (var layer in levelMap.Layers)
             {
+                //if (layer.Id == "Paths") continue;
+
                 var fieldLayer = FieldLocation.Map.GetLayer(layer.Id);
                 if (fieldLayer == null)
                 {
                     Logger.Warn("Missing layer: " + layer.Id);
                     continue;
                 }
+
+                var baseTile = layer.Id == "Paths" ? basePathsTile : baseSpringTile;
 
                 //Logger.Log("Layer: " + layer.Id);
                 for (int x = 0; x < layer.TileWidth; x++)
@@ -119,9 +131,58 @@ namespace StardewBot.Levels
                 //FieldLocation.overlayObjects[bot.] = bot;
             }
             FieldLocation.overlayObjects[placementTile] = bot;
+            bot.FacingDirection = startFacingDir;
+
+            AddObjects();
         }
 
-        private static Point? FindTileWithProperty(Layer layer, string property)
+        protected void AddObjects()
+        {
+            FieldLocation.loadWeeds();
+            //var layer = levelMap.GetLayer("Paths");
+            //if (layer == null) return;
+
+            //for (int x = 0; x < layer.TileWidth; x++)
+            //{
+            //    for (int y = 0; y < layer.TileHeight; y++)
+            //    {
+            //        var t = layer.Tiles[y, x];
+            //        if (t == null) continue;
+
+            //        switch (t.TileIndex)
+            //        {
+            //            case 13:
+            //            case 14:
+            //            case 15:
+            //                if (FieldLocation.CanLoadPathObjectHere(t))
+            //                {
+            //                    FieldLocation.objects.Add(t, new Object(t, FieldLocation.getWeedForSeason(Game1.random, FieldLocation.GetSeasonForLocation()), 1));
+            //                }
+            //                break;
+            //            case 16:
+            //                if (FieldLocation.CanLoadPathObjectHere(t))
+            //                {
+            //                    FieldLocation.objects.Add(t, new Object(t, (Game1.random.NextDouble() < 0.5) ? 343 : 450, 1));
+            //                }
+            //                break;
+            //            case 17:
+            //                if (FieldLocation.CanLoadPathObjectHere(t))
+            //                {
+            //                    FieldLocation.objects.Add(t, new Object(t, (Game1.random.NextDouble() < 0.5) ? 343 : 450, 1));
+            //                }
+            //                break;
+            //            case 18:
+            //                if (CanLoadPathObjectHere(t))
+            //                {
+            //                    FieldLocation.objects.Add(t, new Object(t, (Game1.random.NextDouble() < 0.5) ? 294 : 295, 1));
+            //                }
+            //                break;
+            //        }
+            //    }
+            //}            
+        }
+
+        private static Point? FindTilePointWithProperty(Layer layer, string property)
         {
             for (int x = 0; x < layer.TileWidth; x++)
             {
@@ -136,7 +197,13 @@ namespace StardewBot.Levels
             return null;
         }
 
-        static Dictionary<string, Level> levelMap = new();
+        private static Tile FindTileWithProperty(Layer layer, string property)
+        {
+            var point = FindTilePointWithProperty(layer, property);
+            if (point == null) return null;
+            return layer.Tiles[point.Value.X, point.Value.Y];
+        }
+
         static Level()
         {
             foreach (var level in new Level[]
@@ -144,7 +211,7 @@ namespace StardewBot.Levels
                 new Loops1(),
             })
             {
-                levelMap.Add(level.ID, level);
+                levelsDict.Add(level.ID, level);
             }
         }
 
@@ -157,7 +224,7 @@ namespace StardewBot.Levels
             FieldLocation = new GameLocation(mapAssetKey, FieldLocationName) { IsOutdoors = true, IsFarm = false };
             Game1.locations.Add(FieldLocation);
 
-            foreach (var level in levelMap.Values)
+            foreach (var level in levelsDict.Values)
             {
                 level.LoadLocation(helper);
             }
@@ -165,7 +232,7 @@ namespace StardewBot.Levels
 
         public static bool LoadLevel(string id)
         {
-            if (!levelMap.TryGetValue(id, out var level)) return false;
+            if (!levelsDict.TryGetValue(id, out var level)) return false;
 
             level.Setup();
             level.TeleportToStart();
