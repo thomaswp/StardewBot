@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace StardewBot.Levels
 {
-    public class Loops1 : Level
+    public class Ifs3 : Level
     {
-        public override string MapName => "loops-line";
+        public override string MapName => "ifs-3-types";
     }
 }

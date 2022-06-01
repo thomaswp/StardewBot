@@ -18,6 +18,7 @@ using StardewValley.TerrainFeatures;
 using StardewValley.Objects;
 using StardewBot;
 using BlocklyBridge;
+using static StardewValley.Debris;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
@@ -83,6 +84,7 @@ namespace Farmtronics {
 			public static string facing = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
 			public static string energy = $"{ModEntry.instance.ModManifest.UniqueID}/energy";
 			public static string name = $"{ModEntry.instance.ModManifest.UniqueID}/name";
+			public static string id = $"{ModEntry.instance.ModManifest.UniqueID}/id";
 		}
 
 		// We need a Farmer to be able to use tools.  So, we're going to
@@ -96,7 +98,7 @@ namespace Farmtronics {
 		public readonly static List<Bot> instances = new List<Bot>();
 
 		static int uniqueFarmerID = 1;
-		const float speed = 64;		// pixels/sec
+		public const float Speed = 128;		// pixels/sec
 
 		int toolUseFrame = 0;		// > 0 when using a tool
 
@@ -105,14 +107,16 @@ namespace Farmtronics {
 		public bool IsMoving => position != targetPos;
 		public bool IsUsingTool => toolUseFrame > 0;
 		public bool IsPerformingAction => IsMoving || IsUsingTool;
+		public string ID { get;  private set; }
 
-		public Bot(Farmer farmer) {
+		public Bot(string id, Farmer farmer) {
 			//Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-			Name = "Farmtronics Bot";
+			ID = id;
+			Name = "Bot";
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;
@@ -132,13 +136,15 @@ namespace Farmtronics {
 			// to the instances list.
 		}
 
-		public Bot(Vector2 tileLocation, GameLocation location=null, Farmer farmer=null) :base(tileLocation, vanillaObjectTypeId) {
+		public Bot(string id, Vector2 tileLocation, GameLocation location=null, Farmer farmer=null) :base(tileLocation, vanillaObjectTypeId) {
 			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
+			// Items can have a null ID but not objects in the world
+			ID = id ?? new Guid().ToString();
 			Name = "Bot";
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
@@ -159,10 +165,18 @@ namespace Farmtronics {
 
 			NotePosition();
 
-			Controller = new BotController(this, "1234");
+			Controller = new BotController(this, ID);
 			ModEntry.Dispatcher.SetTarget(Controller);
 
 			instances.Add(this);
+		}
+
+        public void MoveInstantlyToTile(Vector2 placementTile)
+        {
+			if (CurrentLocation == null) return;
+			CurrentLocation.overlayObjects.Remove(TileLocation);
+            TileLocation = placementTile;
+			NotePosition();
 		}
 
 		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
@@ -194,6 +208,7 @@ namespace Farmtronics {
 		void SetModData(ModDataDictionary d) {
 			d[dataKey.isBot] = "1";
 			d[dataKey.name] = name;
+			d[dataKey.id] = ID;
 			d[dataKey.energy] = energy.ToString();
 			d[dataKey.facing] = FacingDirection.ToString();
 		}
@@ -207,6 +222,7 @@ namespace Farmtronics {
 				Logger.Log("ERROR: ApplyModData called with modData where isBot is not true!");
 			}
 			Name = d.GetString(dataKey.name, name);
+			// Note: we don't load the ID here, since it's needed in the constructor
 			if (includingEnergy) farmer.Stamina = d.GetInt(dataKey.energy, energy);
 			farmer.faceDirection(d.GetInt(dataKey.facing, FacingDirection));
 			if (string.IsNullOrEmpty(name)) Name = "Bot " + (uniqueFarmerID++);
@@ -355,7 +371,7 @@ namespace Farmtronics {
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
 
-				Bot bot = new Bot(tileLoc, inLocation);
+				Bot bot = new Bot(chest.modData[dataKey.id], tileLoc, inLocation);
 				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
 				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
 
@@ -384,7 +400,7 @@ namespace Farmtronics {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
 				if (!chest.modData.GetBool(dataKey.isBot)) continue;
-				Bot bot = new Bot(null);
+				Bot bot = new Bot(chest.modData[dataKey.id], null);
 				bot.Stack = chest.Stack;
 				items[i] = bot;
 				// Note: we assume that chests in an item list are just items,
@@ -444,7 +460,7 @@ namespace Farmtronics {
 			//Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x / 64, y / 64);
 			// Create a new bot, copying the farmer (including inventory) from this one.
-			var bot = new Bot(placementTile, location, farmer);
+			var bot = new Bot(ID, placementTile, location, farmer);
 			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
 			bot.shakeTimer = 50;
 
@@ -696,10 +712,11 @@ namespace Farmtronics {
 			}
 
 			if (position != targetPos) {
-				// ToDo: make a utility module with MoveTowards in it
-				// TODO: Use speed variable, rather than 1px per tick
-				position.X += MathF.Sign(targetPos.X - position.X);
-				position.Y += MathF.Sign(targetPos.Y - position.Y);
+				// TODO: This still may have some rounding errors...
+				float speed = Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+				Vector2 delta = targetPos - position;
+				position.X += MathF.Sign(delta.X) * Math.Min(speed, Math.Abs(delta.X));
+				position.Y += MathF.Sign(delta.Y) * Math.Min(speed, Math.Abs(delta.Y));
 				Vector2 newTile = new Vector2((int)position.X / 64, (int)position.Y / 64);
 				if (newTile != TileLocation) {
 					// Remove this object from the Objects list at its old position
@@ -713,7 +730,126 @@ namespace Farmtronics {
 				}
 				//Debug.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
+
+			SetLocalPlayer();
+            //foreach (var debris in CurrentLocation.debris)
+            //         {
+            //	var oldFarmer = debris.player.Value;
+            //	var oldMTP = debris.chunksMoveTowardPlayer;
+            //	debris.player.Value = farmer;
+            //	// Set false so it doesn't acquire a new player
+            //	debris.chunksMoveTowardPlayer = false;
+            //	debris.updateChunks(gameTime, CurrentLocation);
+            //	debris.player.Value = oldFarmer;
+            //	debris.chunksMoveTowardPlayer = oldMTP;
+            //}
+            foreach (var debris in CurrentLocation.debris)
+			{
+				AttractDebris(debris, gameTime, CurrentLocation);
+			}
+            UnsetLocalPlayer();
+        }
+
+		private void AttractDebris(Debris debris, GameTime gameTime, GameLocation location)
+		{
+			if (debris.player.Value != null) return;
+			for (int i = debris.Chunks.Count - 1; i >= 0; i--)
+			{
+				Chunk chunk = debris.Chunks[i];
+				chunk.position.UpdateExtrapolation(chunk.getSpeed());
+				if (chunk.alpha > 0.1f && ((DebrisType)debris.debrisType == DebrisType.SPRITECHUNKS || (DebrisType)debris.debrisType == DebrisType.NUMBERS) && debris.timeSinceDoneBouncing > 600f)
+				{
+					chunk.alpha = (1800f - debris.timeSinceDoneBouncing) / 1000f;
+				}
+				if (chunk.position.X < -128f || chunk.position.Y < -64f || chunk.position.X >= (float)(location.map.DisplayWidth + 64) || chunk.position.Y >= (float)(location.map.DisplayHeight + 64))
+				{
+					debris.Chunks.RemoveAt(i);
+				}
+				else
+				{
+					bool canMoveTowardPlayer = farmer != null;
+					if (canMoveTowardPlayer)
+					{
+						switch (debris.debrisType.Value)
+						{
+							case DebrisType.ARCHAEOLOGY:
+							case DebrisType.OBJECT:
+								if (debris.item != null)
+								{
+									canMoveTowardPlayer = farmer.couldInventoryAcceptThisItem(debris.item);
+									break;
+								}
+								canMoveTowardPlayer = ((chunk.debrisType >= 0) ? farmer.couldInventoryAcceptThisObject(chunk.debrisType, 1, debris.itemQuality) : farmer.couldInventoryAcceptThisItem(new StardewValley.Object(Vector2.Zero, chunk.debrisType * -1)));
+								if (chunk.debrisType == 102 && (bool)farmer.hasMenuOpen)
+								{
+									canMoveTowardPlayer = false;
+								}
+								break;
+							case DebrisType.RESOURCE:
+								canMoveTowardPlayer = farmer.couldInventoryAcceptThisObject(chunk.debrisType - chunk.debrisType % 2, 1);
+								break;
+							default:
+								canMoveTowardPlayer = true;
+								break;
+						}
+						//if (canMoveTowardPlayer && debris.shouldControlThis(location))
+						//{
+						//	player.Value = farmer;
+						//}
+					}
+					var player = farmer;
+					if (debris.chunksMoveTowardPlayer || debris.isFishable)
+					{
+						if (chunk.position.X < player.Position.X - 12f)
+						{
+							chunk.xVelocity.Value = Math.Min((float)chunk.xVelocity + 0.8f, 8f);
+						}
+						else if (chunk.position.X > player.Position.X + 12f)
+						{
+							chunk.xVelocity.Value = Math.Max((float)chunk.xVelocity - 0.8f, -8f);
+						}
+						if (chunk.position.Y + 32f < (float)(player.getStandingY() - 12))
+						{
+							chunk.yVelocity.Value = Math.Max((float)chunk.yVelocity - 0.8f, -8f);
+						}
+						else if (chunk.position.Y + 32f > (float)(player.getStandingY() + 12))
+						{
+							chunk.yVelocity.Value = Math.Min((float)chunk.yVelocity + 0.8f, 8f);
+						}
+						chunk.position.X += chunk.xVelocity;
+						chunk.position.Y -= chunk.yVelocity;
+						if (Math.Abs(chunk.position.X + 32f - (float)player.getStandingX()) <= 64f && Math.Abs(chunk.position.Y + 32f - (float)player.getStandingY()) <= 64f)
+						{
+							Item old = debris.item;
+							if (player.addItemToInventory(debris.item) == null)
+							//if (debris.collect(player, chunk))
+							{
+								if (Game1.debrisSoundInterval <= 0f)
+								{
+									Game1.debrisSoundInterval = 10f;
+									if ((old == null || (int)old.parentSheetIndex != 73) && chunk.debrisType != 73)
+									{
+										location.localSound("coin");
+									}
+								}
+								debris.Chunks.RemoveAt(i);
+							}
+						}
+					}
+				}
+			}
 		}
+
+		private void SetLocalPlayer()
+        {
+			farmer.UniqueMultiplayerID = Game1.player.UniqueMultiplayerID;
+        }
+
+		private void UnsetLocalPlayer()
+        {
+			// Not sure if this is the right call, or even necessary
+			farmer.UniqueMultiplayerID = 0;
+        }
 
 		public override string getDescription() {
 			return "A programmable mechanical wonder.";
@@ -916,7 +1052,7 @@ namespace Farmtronics {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the farmer (with inventory etc.)
 			farmer.Name = name;		// (ensures that name copies from old bot to new bot)
-			var ret = new Bot(farmer);
+			var ret = new Bot(ID, farmer);
 			ret.name = name;
 
 			SetModData(ret.modData);

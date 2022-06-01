@@ -110,5 +110,11 @@ namespace BlocklyTest
         {
             Dispatcher.Dispose();
         }
+
+        public bool TryTestCode()
+        {
+            BlocklyGenerator.SendEvent(this, "OnTest");
+            return true;
+        }
     }
 }

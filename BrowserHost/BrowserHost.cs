@@ -60,7 +60,7 @@ namespace Browser.Host
 
         public void Refresh()
         {
-            browser.GetBrowser().Reload();
+            browser.GetBrowser().Reload(true);
         }
 
         private void Browser_BrowserInitialized(object sender, EventArgs e)

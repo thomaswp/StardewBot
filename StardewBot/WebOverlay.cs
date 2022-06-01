@@ -161,7 +161,7 @@ namespace StardewBot
                 lastRead[i + 0] = lastRead[i + 2];
                 lastRead[i + 2] = temp;
             }
-            Texture2D texture = new Texture2D(graphicsDevice, Settings.MAX_WIDTH, Settings.MAX_HEIGHT);
+            Texture2D texture = new Texture2D(graphicsDevice, width, height);
             texture.SetData(lastRead);
             Console.WriteLine("Texture");
             cachedTexture = texture;

@@ -59,6 +59,15 @@ namespace StardewBot
             throw new NotImplementedException("Unknown type: " + declaringType.Name);
         }
 
+        public bool TryTestCode()
+        {
+            Levels.Level.OnTesting(this);
+            var events = behaviors.Values.Where(b => b is Events).First() as Events;
+            events.OnCodeTested();
+            if (ModEntry.Overlay.Showing) ModEntry.Overlay.ToggleShowing();
+            return true;
+        }
+
         public void Update(GameTime time)
         {
             foreach (var behavior in behaviors.Values) behavior.Update(time);

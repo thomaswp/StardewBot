@@ -37,7 +37,7 @@ namespace StardewBot
             private set;
         }
 
-        public WebOverlay Overlay;
+        public static WebOverlay Overlay { get; private set; }
 
         internal static ModEntry instance;
         public static IModHelper helper => ModHelper;
@@ -89,8 +89,11 @@ namespace StardewBot
             Dispatcher.OnSave += Dispatcher_OnSave;
 
             // What about resize..?
-            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            var bounds = Game1.graphics.GraphicsDevice.Viewport.Bounds;
+            // GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            int width = bounds.Width;
+            int height = bounds.Height;
+            Logger.Log($"Width: {width}; Height: {height}");
             Overlay = new WebOverlay(helper, width, height);
         }
 
@@ -147,9 +150,10 @@ namespace StardewBot
             Game1.options.musicVolumeLevel = 0;
 
             var player = Game1.player;
-            player.addItemToInventory(new Bot(null));
+            player.addItemToInventory(new Bot("1234", null));
 
-            Level.LoadLevel("loops1");
+            //Level.LoadLevel("loops-line");
+            Level.LoadLevel("ifs-3-types");
 
             //BotFarmer bot = new BotFarmer("Robot");
 
@@ -205,7 +209,7 @@ namespace StardewBot
                         Logger.Log($"Shop item {index}: {item} with {item.Name}");
                         if (item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
                     }
-                    var botForSale = new Bot(null);
+                    var botForSale = new Bot(null, null);
                     shop.forSale.Insert(index, botForSale);
                     shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });  // sale price and available stock
                 }

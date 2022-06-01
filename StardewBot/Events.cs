@@ -56,5 +56,11 @@ namespace StardewBot
         {
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
+
+        [ScriptableEvent()]
+        public void OnCodeTested()
+        {
+            BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
+        }
     }
 }

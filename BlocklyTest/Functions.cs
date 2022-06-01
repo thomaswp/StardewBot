@@ -50,5 +50,10 @@ namespace BlocklyTest
         public void OnStart()
         {
         }
+
+        [ScriptableEvent]
+        public void OnTest()
+        {
+        }
     }
 }

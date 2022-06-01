@@ -30,8 +30,22 @@ namespace StardewBot.Levels
         protected int startFacingDir;
         protected Bot bot;
 
-        public static GameLocation FieldLocation;
+        public static GameLocation FieldLocation { get; private set; }
+        public static Level CurrentLevel { get; private set; }
+
         static Dictionary<string, Level> levelsDict = new();
+
+        static Level()
+        {
+            foreach (var level in new Level[]
+            {
+                new Loops1(),
+                new Ifs3(),
+            })
+            {
+                levelsDict.Add(level.ID, level);
+            }
+        }
 
         protected void LoadLocation(IModHelper helper)
         {
@@ -115,6 +129,13 @@ namespace StardewBot.Levels
             }
         }
 
+        public static void OnTesting(BotController botController)
+        {
+            if (CurrentLevel == null) return;
+            if (CurrentLevel.bot != botController.Bot) return;
+            CurrentLevel.ResetBot();
+        }
+
         protected void ResetBot()
         {
             Logger.Log("Bot Reset: " + botStart);
@@ -122,13 +143,12 @@ namespace StardewBot.Levels
             var placementTile = new Vector2(botStart.X, botStart.Y);
             if (bot == null)
             {
-                bot = new Bot(placementTile, FieldLocation);
+                bot = new Bot(ID, placementTile, FieldLocation);
                 bot.shakeTimer = 50;
             }
             else
             {
-                // Remove from former tile?
-                //FieldLocation.overlayObjects[bot.] = bot;
+                bot.MoveInstantlyToTile(placementTile);
             }
             FieldLocation.overlayObjects[placementTile] = bot;
             bot.FacingDirection = startFacingDir;
@@ -204,17 +224,6 @@ namespace StardewBot.Levels
             return layer.Tiles[point.Value.X, point.Value.Y];
         }
 
-        static Level()
-        {
-            foreach (var level in new Level[]
-            {
-                new Loops1(),
-            })
-            {
-                levelsDict.Add(level.ID, level);
-            }
-        }
-
         public static void LoadAssets(IModHelper helper)
         {
             // get the internal asset key for the map file
@@ -234,6 +243,7 @@ namespace StardewBot.Levels
         {
             if (!levelsDict.TryGetValue(id, out var level)) return false;
 
+            CurrentLevel = level;
             level.Setup();
             level.TeleportToStart();
             return true;
