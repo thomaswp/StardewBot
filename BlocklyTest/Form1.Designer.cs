@@ -34,6 +34,7 @@ namespace BlocklyTest
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // timer1
@@ -69,6 +70,11 @@ namespace BlocklyTest
             this.panel1.Size = new System.Drawing.Size(672, 375);
             this.panel1.TabIndex = 2;
             // 
+            // timer2
+            // 
+            this.timer2.Enabled = true;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -79,10 +85,13 @@ namespace BlocklyTest
             this.Controls.Add(this.button1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Activated += new System.EventHandler(this.Form1_Activated);
+            this.Deactivate += new System.EventHandler(this.Form1_Deactivate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Layout += new System.Windows.Forms.LayoutEventHandler(this.Form1_Layout);
             this.Move += new System.EventHandler(this.Form1_Move);
+            this.Resize += new System.EventHandler(this.Form1_Resize);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -94,6 +103,7 @@ namespace BlocklyTest
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Timer timer2;
     }
 }
 

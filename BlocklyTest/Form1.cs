@@ -62,8 +62,13 @@ namespace BlocklyTest
             Logger.Implementation = this;
 
             browserOverlay = new BrowserOverlay();
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
             browserOverlay.Initialize();
             UpdatePosition();
+            timer2.Enabled = false;
         }
 
         private void Dispatcher_OnSave(ProgramState obj)
@@ -135,15 +140,30 @@ namespace BlocklyTest
             UpdatePosition();
         }
 
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            UpdatePosition();
+        }
+
         private void UpdatePosition()
         {
             if (browserOverlay == null) return;
             //Rectangle dBounds = DesktopBounds;
             Rectangle bounds = panel1.Bounds;
             Point topLeft = panel1.PointToScreen(Point.Empty);
-            bounds.X = topLeft.X;
-            bounds.Y = topLeft.Y;
+            //bounds.X = topLeft.X;
+            //bounds.Y = topLeft.Y;
             browserOverlay.RepositionBrowser(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        }
+
+        private void Form1_Activated(object sender, EventArgs e)
+        {
+            browserOverlay.OnParentWindowFocused();
+        }
+
+        private void Form1_Deactivate(object sender, EventArgs e)
+        {
+            browserOverlay.OnParentWindowBlurred();
         }
     }
 }
