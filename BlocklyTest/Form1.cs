@@ -58,15 +58,22 @@ namespace BlocklyTest
 
             Dispatcher.Register(this);
             Dispatcher.OnSave += Dispatcher_OnSave;
+            Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;
 
             Logger.Implementation = this;
 
             browserOverlay = new BrowserOverlay();
         }
 
+        private void Dispatcher_OnReceiveMinimize()
+        {
+            browserOverlay.Hide();
+        }
+
         private void timer2_Tick(object sender, EventArgs e)
         {
-            browserOverlay.Initialize(p => p.MainWindowHandle == Handle);
+            IntPtr handle = Handle;
+            //browserOverlay.Initialize(p => p.MainWindowHandle == handle);
             UpdatePosition();
             timer2.Enabled = false;
         }
@@ -143,6 +150,7 @@ namespace BlocklyTest
         private void Form1_Resize(object sender, EventArgs e)
         {
             UpdatePosition();
+            Dispatcher.ResizeBlockly(Width, Height);
         }
 
         private void UpdatePosition()
@@ -153,17 +161,26 @@ namespace BlocklyTest
             Point topLeft = panel1.PointToScreen(Point.Empty);
             //bounds.X = topLeft.X;
             //bounds.Y = topLeft.Y;
-            browserOverlay.RepositionBrowser(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+            //browserOverlay.RepositionBrowser(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
         }
 
         private void Form1_Activated(object sender, EventArgs e)
         {
-            browserOverlay.OnParentWindowFocused();
+            //browserOverlay.OnParentWindowFocused();
         }
 
         private void Form1_Deactivate(object sender, EventArgs e)
         {
-            browserOverlay.OnParentWindowBlurred();
+            //browserOverlay.OnParentWindowBlurred();
+        }
+
+        //bool showing = false;
+        private void button2_Click(object sender, EventArgs e)
+        {
+            browserOverlay.Show();
+            //if (showing) browserOverlay.Show();
+            //else browserOverlay.Hide();
+            //showing = !showing;
         }
     }
 }

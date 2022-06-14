@@ -750,7 +750,8 @@ namespace Farmtronics {
             UnsetLocalPlayer();
         }
 
-		private void AttractDebris(Debris debris, GameTime gameTime, GameLocation location)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("SMAPI.CommonErrors", "AvoidImplicitNetFieldCast:Netcode types shouldn't be implicitly converted", Justification = "<Pending>")]
+        private void AttractDebris(Debris debris, GameTime gameTime, GameLocation location)
 		{
 			if (debris.player.Value != null) return;
 			for (int i = debris.Chunks.Count - 1; i >= 0; i--)
@@ -827,7 +828,7 @@ namespace Farmtronics {
 								if (Game1.debrisSoundInterval <= 0f)
 								{
 									Game1.debrisSoundInterval = 10f;
-									if ((old == null || (int)old.parentSheetIndex != 73) && chunk.debrisType != 73)
+									if ((old == null || old.ParentSheetIndex != 73) && chunk.debrisType != 73)
 									{
 										location.localSound("coin");
 									}

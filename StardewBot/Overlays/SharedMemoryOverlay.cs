@@ -11,18 +11,16 @@ using StardewValley.Menus;
 using System;
 using System.Threading;
 
-namespace StardewBot
+namespace StardewBot.Overlays
 {
-
-
-    public class WebOverlay : IDisposable, IKeyboardSubscriber
+    public class SharedMemoryOverlay : IProgrammingOverlay, IKeyboardSubscriber
     {
 
         class Menu : IClickableMenu
         {
-            WebOverlay overlay;
+            SharedMemoryOverlay overlay;
 
-            public Menu(WebOverlay overlay, int width, int height)
+            public Menu(SharedMemoryOverlay overlay, int width, int height)
                 : base(0, 0, width, height)
             {
                 this.overlay = overlay;
@@ -54,12 +52,22 @@ namespace StardewBot
         public bool Showing { get; private set; }
         public bool Selected { get => Showing; set { } }
 
-        public WebOverlay(IModHelper helper, int width, int height)
+        public SharedMemoryOverlay(IModHelper helper, int width, int height)
             
         {
             this.helper = helper;
             this.width = width;
             this.height = height;
+
+            helper.Events.Input.CursorMoved += Input_CursorMoved;
+            helper.Events.Input.ButtonPressed += Input_ButtonPressed;
+            helper.Events.Input.ButtonReleased += Input_ButtonReleased;
+            helper.Events.Input.MouseWheelScrolled += Input_MouseWheelScrolled;
+
+        }
+
+        public void Initialize()
+        {
             bridge = new IOBridge();
             //string url = "https://www.google.com";
             //string url = "https://blockly-demo.appspot.com/static/demos/code/index.html";
@@ -71,12 +79,6 @@ namespace StardewBot
                 externalBrowser = true;
                 return;
             }
-
-            helper.Events.Input.CursorMoved += Input_CursorMoved;
-            helper.Events.Input.ButtonPressed += Input_ButtonPressed;
-            helper.Events.Input.ButtonReleased += Input_ButtonReleased;
-            helper.Events.Input.MouseWheelScrolled += Input_MouseWheelScrolled;
-
             menu = new Menu(this, width, height);
         }
 
@@ -85,6 +87,16 @@ namespace StardewBot
             Logger.Log("Keyboard: " + e.Character);
             if (!Showing) return; 
             bridge.KeyEvent(3, e.Character);
+        }
+
+        public void Show()
+        {
+            if (!Showing) ToggleShowing();
+        }
+
+        public void Hide()
+        {
+            if (Showing) ToggleShowing();
         }
 
         public void ToggleShowing()
@@ -109,11 +121,6 @@ namespace StardewBot
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-
-            if (e.Button == SButton.X)
-            {
-                ToggleShowing();
-            }
             if (Showing && e.Button == SButton.R)
             {
                 bridge.Refresh();

@@ -13,8 +13,10 @@ using UINT = System.UInt32;
 namespace WindowsAPI
 {
 
-    public class BrowserOverlay : IDisposable
+    public class BrowserOverlay
     {
+        #region EXTERN
+
         [StructLayout(LayoutKind.Sequential)]
         public struct Rect
         {
@@ -46,6 +48,9 @@ namespace WindowsAPI
 
         [DllImport("USER32.DLL")]
         private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("USER32.DLL")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("USER32.DLL")]
         private static extern bool IsWindowVisible(IntPtr hWnd);
@@ -92,39 +97,34 @@ namespace WindowsAPI
         [DllImport("user32.dll")]
         static extern bool RemoveMenu(IntPtr hMenu, uint uPosition, uint uFlags);
 
-        //assorted constants needed
-        public static uint MF_BYPOSITION = 0x400;
-        public static uint MF_REMOVE = 0x1000;
-        public static int GWL_STYLE = -16;
-        public static int WS_CHILD = 0x40000000; //child window
-        public static int WS_BORDER = 0x00800000; //window with border
-        public static int WS_DLGFRAME = 0x00400000; //window with double border but no title
-        public static int WS_CAPTION = WS_BORDER | WS_DLGFRAME; //window with a title bar 
-        public static int WS_SYSMENU = 0x00080000; //window menu  
-        private const int WS_MINIMIZEBOX = 0x00020000;
-        private const int WS_MAXIMIZEBOX = 0x00010000;
-        private const int WS_SIZEBOX = 0x00040000;
-
-
-        private const UInt32 SWP_NOSIZE = 0x0001;
-        private const UInt32 SWP_NOMOVE = 0x0002;
-        private const UInt32 SWP_NOACTIVATE = 0x0010;
-        private const UInt32 TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
-        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        #endregion EXTERN
 
         private Process browserProcess;
+        private IntPtr parentHandle;
 
+        private IntPtr BrowserWindowHandle
+        {
+            get 
+            {
+                if (browserProcess == null) return IntPtr.Zero;
+                return browserProcess.MainWindowHandle;
+            }
+        }
+
+        public bool Running => browserProcess != null && BrowserWindowHandle != IntPtr.Zero;
+        public bool Initialized { get; private set; }
 
         public void Initialize(Func<Process, bool> processFilter)
         {
             // TODO: Only works if there are no existing chrome processes...
+            // Should at least wait for them to close
             // TODO: Get default or available browser; use specific file location
             LaunchBrowser();
             if (browserProcess == null) return;
             Task.Run(() =>
             {
                 int tries = 50;
-                while (tries > 0 && browserProcess.MainWindowHandle == IntPtr.Zero)
+                while (tries > 0 && BrowserWindowHandle == IntPtr.Zero)
                 {
                     Thread.Sleep(100);
                     tries--;
@@ -133,12 +133,25 @@ namespace WindowsAPI
             }).ContinueWith(t => SetParent(processFilter));
         }
 
+        public void Show()
+        {
+            if (!Initialized) return;
+            ShowWindow(BrowserWindowHandle, 1);
+        }
+
+        public void Hide()
+        {
+            if (!Initialized) return;
+            ShowWindow(BrowserWindowHandle, 0);
+            SetForegroundWindow(parentHandle);
+        }
+
         private void SetParent(Func<Process, bool> processFilter)
         {
-            Debug.WriteLine("Chrome: " + browserProcess.MainWindowHandle);
-            if (browserProcess.MainWindowHandle == IntPtr.Zero) return;
+            Debug.WriteLine("Chrome: " + BrowserWindowHandle);
+            if (!Running) return;
 
-            IntPtr parentHandle = IntPtr.Zero;
+            parentHandle = IntPtr.Zero;
             foreach (Process p in Process.GetProcesses())
             {
                 if (p.MainWindowHandle == IntPtr.Zero) continue;
@@ -157,12 +170,14 @@ namespace WindowsAPI
             var owner = parentHandle;
             //var owner = Process.GetCurrentProcess().MainWindowHandle;
             var owned = browserProcess.MainWindowHandle;
+            //var result = new IntPtr(1);
             var result = SetParent(owned, owner);
             //var result2 = SetWindowLongA(owned, -16, 0x40000000L);
             Debug.WriteLine($"{owner} owns {owned}: {result}");
 
-            IntPtr pFoundWindow = owned;
-            int style = GetWindowLong(pFoundWindow, GWL_STYLE);
+            Initialized = result != IntPtr.Zero;
+            //SetWindowPos(BrowserWindowHandle, IntPtr.Zero, 10, 10, 500, 300, SWP_NOACTIVATE);
+            //Hide();
         }
 
         private void LaunchBrowser()
@@ -182,9 +197,10 @@ namespace WindowsAPI
                     string target = "file:///C:/xampp/htdocs/farmbot-blockly/step-execution.html";
                     var browserProcess = new Process();
                     browserProcess.StartInfo.FileName = path;
-                    browserProcess.StartInfo.Arguments =  $"{target} --chrome --kiosk --incognito";
+                    browserProcess.StartInfo.Arguments =  $"{target} --chrome --incognito --kiosk";
                     browserProcess.Start();
                     this.browserProcess = browserProcess;
+                    break;
                 }
                 catch (Exception e)
                 {
@@ -206,8 +222,32 @@ namespace WindowsAPI
 
         #region UNUSED
 
+
+        //assorted constants needed
+        //private static uint MF_BYPOSITION = 0x400;
+        //private static uint MF_REMOVE = 0x1000;
+        //private static int GWL_STYLE = -16;
+        //private static int WS_CHILD = 0x40000000; //child window
+        private static int WS_BORDER = 0x00800000; //window with border
+        private static int WS_DLGFRAME = 0x00400000; //window with double border but no title
+        private static int WS_CAPTION = WS_BORDER | WS_DLGFRAME; //window with a title bar 
+        //private static int WS_SYSMENU = 0x00080000; //window menu  
+        private const int WS_MINIMIZEBOX = 0x00020000;
+        private const int WS_MAXIMIZEBOX = 0x00010000;
+        private const int WS_SIZEBOX = 0x00040000;
+
+
+        private const UInt32 SWP_NOSIZE = 0x0001;
+        private const UInt32 SWP_NOMOVE = 0x0002;
+        private const UInt32 SWP_NOACTIVATE = 0x0010;
+        private const UInt32 TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE;
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+
         private void UpdateWindowStyle()
         {
+
+            //IntPtr pFoundWindow = owned;
+            //int style = GetWindowLong(pFoundWindow, GWL_STYLE);
 
             //get menu
             //IntPtr HMENU = GetMenu(pFoundWindow);

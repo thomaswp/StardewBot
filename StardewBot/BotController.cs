@@ -64,7 +64,7 @@ namespace StardewBot
             Levels.Level.OnTesting(this);
             var events = behaviors.Values.Where(b => b is Events).First() as Events;
             events.OnCodeTested();
-            if (ModEntry.Overlay.Showing) ModEntry.Overlay.ToggleShowing();
+            if (ModEntry.Overlay.Showing) ModEntry.Overlay.Hide();
             return true;
         }
 

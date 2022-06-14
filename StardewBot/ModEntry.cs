@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using StardewBot.Levels;
+using StardewBot.Overlays;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -39,7 +40,7 @@ namespace StardewBot
             private set;
         }
 
-        public static WebOverlay Overlay { get; private set; }
+        public static IProgrammingOverlay Overlay { get; private set; }
 
         internal static ModEntry instance;
         public static IModHelper helper => ModHelper;
@@ -62,6 +63,7 @@ namespace StardewBot
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
             helper.Events.Display.Rendered += Display_Rendered;
+            helper.Events.Input.ButtonPressed += Input_ButtonPressed;
 
             // From Farmtronics
             helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
@@ -70,6 +72,8 @@ namespace StardewBot
             helper.Events.GameLoop.Saved += OnSaved;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
+
+            helper.Events.Display.WindowResized += Display_WindowResized;
 
             Logger.Implementation = new StardewLogger(Monitor);
 
@@ -89,15 +93,38 @@ namespace StardewBot
                 }
             });
             Dispatcher.OnSave += Dispatcher_OnSave;
+            Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;
 
-            // What about resize..?
-            var bounds = Game1.graphics.GraphicsDevice.Viewport.Bounds;
-            // GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-            int width = bounds.Width;
-            int height = bounds.Height;
-            Logger.Log($"Width: {width}; Height: {height}");
-            Overlay = new WebOverlay(helper, width, height);
+            //var bounds = Game1.graphics.GraphicsDevice.Viewport.Bounds;
+            //// GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            //int width = bounds.Width;
+            //int height = bounds.Height;
+            //Logger.Log($"Width: {width}; Height: {height}");
+            //Overlay = new WebOverlay(helper, width, height);
 
+            // TODO: What about resize..?
+            Overlay = new BrowserProgrammingOverlay();
+        }
+
+        private void Dispatcher_OnReceiveMinimize()
+        {
+            Overlay.Hide();
+        }
+
+        private void Display_WindowResized(object sender, WindowResizedEventArgs e)
+        {
+            Logger.Log("Resizing to: " + e.NewSize);
+            Dispatcher.ResizeBlockly(e.NewSize.X, e.NewSize.Y);
+        }
+
+        private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
+        {
+            if (e.Button == SButton.X)
+            {
+                Logger.Log("Toggling Overlay");
+                if (Overlay.Showing) Overlay.Hide();
+                else Overlay.Show();
+            }
         }
 
         private void Dispatcher_OnSave(ProgramState obj)
@@ -110,39 +137,25 @@ namespace StardewBot
         {
             // Note: Does not work curretly
             GameRunner.instance.Exiting += Instance_Exiting;
-
-            if (browserOverlay == null)
-            {
-                // TODO: Only on Windows
-                browserOverlay = new BrowserOverlay();
-                IntPtr game1Handle = Game1.game1.Window.Handle;
-                IntPtr runnerHandle = GameRunner.instance.Window.Handle;
-                Logger.Log($"Game handles: {game1Handle}, {runnerHandle}");
-                Task.Delay(1000).ContinueWith(t =>
-                {
-                    browserOverlay.Initialize(p => p.ProcessName == "StardewModdingAPI");
-                });
-            }
+            var bounds = Game1.game1.Window.ClientBounds;
+            Dispatcher.ResizeBlockly(bounds.Width, bounds.Height);
+            Overlay.Initialize();
         }
 
         private void Instance_Exiting(object sender, EventArgs e)
         {
             // TODO: This is never called - not sure why
             Overlay.Dispose();
-            browserOverlay.Dispose();
         }
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
-            //Overlay.Draw(e.SpriteBatch);
         }
 
         private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
         {
             Bot.ClearAll();
         }
-
-        BrowserOverlay browserOverlay;
 
         uint prevTicks;
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
