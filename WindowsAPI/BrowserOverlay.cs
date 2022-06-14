@@ -115,13 +115,62 @@ namespace WindowsAPI
         private Process browserProcess;
 
 
-        public bool Initialize()
+        public void Initialize(Func<Process, bool> processFilter)
         {
             // TODO: Only works if there are no existing chrome processes...
             // TODO: Get default or available browser; use specific file location
+            LaunchBrowser();
+            if (browserProcess == null) return;
+            Task.Run(() =>
+            {
+                int tries = 50;
+                while (tries > 0 && browserProcess.MainWindowHandle == IntPtr.Zero)
+                {
+                    Thread.Sleep(100);
+                    tries--;
+                    //Debug.Write(browserProcess.MainWindowHandle);
+                }
+            }).ContinueWith(t => SetParent(processFilter));
+        }
 
+        private void SetParent(Func<Process, bool> processFilter)
+        {
+            Debug.WriteLine("Chrome: " + browserProcess.MainWindowHandle);
+            if (browserProcess.MainWindowHandle == IntPtr.Zero) return;
+
+            IntPtr parentHandle = IntPtr.Zero;
+            foreach (Process p in Process.GetProcesses())
+            {
+                if (p.MainWindowHandle == IntPtr.Zero) continue;
+                //Debug.WriteLine(p.ProcessName + " (" + p.MainWindowTitle + "): " + p.MainWindowHandle);
+                if (processFilter(p))
+                {
+                    parentHandle = p.MainWindowHandle;
+                }
+            }
+            if (parentHandle == IntPtr.Zero)
+            {
+                Debug.WriteLine("Cannot find parent...");
+                return;
+            }
+
+            var owner = parentHandle;
+            //var owner = Process.GetCurrentProcess().MainWindowHandle;
+            var owned = browserProcess.MainWindowHandle;
+            var result = SetParent(owned, owner);
+            //var result2 = SetWindowLongA(owned, -16, 0x40000000L);
+            Debug.WriteLine($"{owner} owns {owned}: {result}");
+
+            IntPtr pFoundWindow = owned;
+            int style = GetWindowLong(pFoundWindow, GWL_STYLE);
+        }
+
+        private void LaunchBrowser()
+        {
+            // TODO: Add firefox (with firefox -kiosk -private-window) after fixing websocket bug...
             string[] browserPaths =
             {
+                Environment.GetEnvironmentVariable("ProgramFiles(x86)") + @"\Google\Chrome\Application\chrome.exe",
                 Environment.GetEnvironmentVariable("ProgramFiles(x86)") + @"\Google\Chrome\Application\chrome.exe",
                 Environment.GetEnvironmentVariable("ProgramFiles") + @"\Google\Chrome\Application\chrome.exe",
             };
@@ -130,9 +179,10 @@ namespace WindowsAPI
             {
                 try
                 {
+                    string target = "file:///C:/xampp/htdocs/farmbot-blockly/step-execution.html";
                     var browserProcess = new Process();
                     browserProcess.StartInfo.FileName = path;
-                    browserProcess.StartInfo.Arguments = "file:///C:/xampp/htdocs/farmbot-blockly/step-execution.html" + " --new-window";
+                    browserProcess.StartInfo.Arguments =  $"{target} --chrome --kiosk --incognito";
                     browserProcess.Start();
                     this.browserProcess = browserProcess;
                 }
@@ -144,22 +194,20 @@ namespace WindowsAPI
             if (browserProcess == null)
             {
                 Debug.WriteLine("Could not find browser");
-                return false;
             }
+        }
+
+        public void Dispose()
+        {
+            if (browserProcess == null) return;
+            browserProcess.CloseMainWindow();
+        }
 
 
-            // TODO: Actually wait until the process has a window handle
-            Thread.Sleep(1000);
+        #region UNUSED
 
-            //var owner = parentHandle;
-            var owner = Process.GetCurrentProcess().MainWindowHandle;
-            var owned = browserProcess.MainWindowHandle;
-            var result = SetParent(owned, owner);
-            //var result2 = SetWindowLongA(owned, -16, 0x40000000L);
-            Debug.WriteLine($"{owner} owns {owned}: {result}");
-
-            IntPtr pFoundWindow = owned;
-            int style = GetWindowLong(pFoundWindow, GWL_STYLE);
+        private void UpdateWindowStyle()
+        {
 
             //get menu
             //IntPtr HMENU = GetMenu(pFoundWindow);
@@ -184,16 +232,15 @@ namespace WindowsAPI
             //browserProcess.Start();
 
 
-            SetTopmost(true);
-            return true;
+            //SetTopmost(true);
         }
 
-        public enum WindowState
+        private enum WindowState
         {
             Normal, Minimized, Maximized,
         }
 
-        public static WindowState GetWindowState(IntPtr windowHandle)
+        private static WindowState GetWindowState(IntPtr windowHandle)
         {
             if (windowHandle == IntPtr.Zero) return WindowState.Normal;
             WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
@@ -209,8 +256,7 @@ namespace WindowsAPI
             }
             return WindowState.Normal;
         }
-
-        public void SetTopmost(bool isTopmost)
+        private void SetTopmost(bool isTopmost)
         {
             //if (browserProcess == null) return;
             //IntPtr handle = browserProcess.MainWindowHandle;
@@ -233,7 +279,7 @@ namespace WindowsAPI
             ShowWindow(handle, 1); // Ask for normal
         }
 
-        public void RepositionBrowser(int x, int y, int width, int height)
+        private void RepositionBrowser(int x, int y, int width, int height)
         {
             if (browserProcess == null) return;
             //var owner = Process.GetCurrentProcess().MainWindowHandle;
@@ -243,17 +289,17 @@ namespace WindowsAPI
             // SetWindowPos(browserProcess.MainWindowHandle, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE);
         }
 
-        public void OnParentWindowFocused()
+        private void OnParentWindowFocused()
         {
             SetTopmost(true);
         }
 
-        public void OnParentWindowBlurred()
+        private void OnParentWindowBlurred()
         {
             SetTopmost(false);
         }
 
-        public static HWND? GetChrome()
+        private static HWND? GetChrome()
         {
             foreach (var process in Process.GetProcesses())
             {
@@ -269,11 +315,6 @@ namespace WindowsAPI
             }
             return null;
         }
-
-        public void Dispose()
-        {
-            if (browserProcess == null) return;
-            browserProcess.CloseMainWindow();
-        }
+        #endregion UNUSED
     }
 }

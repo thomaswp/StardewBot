@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BlocklyBridge\BlocklyBridge.csproj" />
     <ProjectReference Include="..\BrowserCommon\BrowserCommon.csproj" />
+    <ProjectReference Include="..\WindowsAPI\WindowsAPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

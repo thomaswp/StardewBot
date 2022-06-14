@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StardewBot", "StardewBot\StardewBot.csproj", "{CB6088B5-8148-43BA-BC3F-07295194F1F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E0E4944B-9FF4-4683-87F3-28BB7D45A869} = {E0E4944B-9FF4-4683-87F3-28BB7D45A869}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlocklyBridge", "BlocklyBridge\BlocklyBridge.csproj", "{67A0B4AB-D998-4159-BB8B-324E7879DA71}"
 EndProject
@@ -15,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrowserTest", "BrowserTest\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlocklyTest", "BlocklyTest\BlocklyTest.csproj", "{A2D5BD0B-ECF1-42A5-A47D-11B66D0C759B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsAPI", "WindowsAPI\WindowsAPI.csproj", "{E0E4944B-9FF4-4683-87F3-28BB7D45A869}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WindowsAPI", "WindowsAPI\WindowsAPI.csproj", "{E0E4944B-9FF4-4683-87F3-28BB7D45A869}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

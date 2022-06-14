@@ -66,7 +66,7 @@ namespace BlocklyTest
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            browserOverlay.Initialize();
+            browserOverlay.Initialize(p => p.MainWindowHandle == Handle);
             UpdatePosition();
             timer2.Enabled = false;
         }

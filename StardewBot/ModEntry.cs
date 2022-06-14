@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using BlocklyBridge;
 using Farmtronics;
 using Microsoft.Xna.Framework;
@@ -14,6 +15,7 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
+using WindowsAPI;
 using xTile.Layers;
 
 namespace StardewBot
@@ -95,6 +97,7 @@ namespace StardewBot
             int height = bounds.Height;
             Logger.Log($"Width: {width}; Height: {height}");
             Overlay = new WebOverlay(helper, width, height);
+
         }
 
         private void Dispatcher_OnSave(ProgramState obj)
@@ -105,13 +108,28 @@ namespace StardewBot
 
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
         {
+            // Note: Does not work curretly
             GameRunner.instance.Exiting += Instance_Exiting;
+
+            if (browserOverlay == null)
+            {
+                // TODO: Only on Windows
+                browserOverlay = new BrowserOverlay();
+                IntPtr game1Handle = Game1.game1.Window.Handle;
+                IntPtr runnerHandle = GameRunner.instance.Window.Handle;
+                Logger.Log($"Game handles: {game1Handle}, {runnerHandle}");
+                Task.Delay(1000).ContinueWith(t =>
+                {
+                    browserOverlay.Initialize(p => p.ProcessName == "StardewModdingAPI");
+                });
+            }
         }
 
         private void Instance_Exiting(object sender, EventArgs e)
         {
             // TODO: This is never called - not sure why
             Overlay.Dispose();
+            browserOverlay.Dispose();
         }
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
@@ -124,10 +142,13 @@ namespace StardewBot
             Bot.ClearAll();
         }
 
+        BrowserOverlay browserOverlay;
+
         uint prevTicks;
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
         {
-            while(queuedActions.TryDequeue(out Action result))
+
+            while (queuedActions.TryDequeue(out Action result))
             {
                 result();
             }
