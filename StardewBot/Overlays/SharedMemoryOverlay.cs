@@ -66,12 +66,12 @@ namespace StardewBot.Overlays
 
         }
 
-        public void Initialize()
+        public void Initialize(string blocklyPath)
         {
             bridge = new IOBridge();
             //string url = "https://www.google.com";
             //string url = "https://blockly-demo.appspot.com/static/demos/code/index.html";
-            string url = @"C:\xampp\htdocs\farmbot-blockly\step-execution.html";
+            string url = blocklyPath;
             bridge.StartBrowser(width, height, url);
             reader = new GraphicsReader(width, height);
             if (reader.Failed)

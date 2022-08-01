@@ -101,6 +101,7 @@ namespace WindowsAPI
 
         private Process browserProcess;
         private IntPtr parentHandle;
+        private string blocklyPath;
 
         private IntPtr BrowserWindowHandle
         {
@@ -114,8 +115,10 @@ namespace WindowsAPI
         public bool Running => browserProcess != null && BrowserWindowHandle != IntPtr.Zero;
         public bool Initialized { get; private set; }
 
-        public void Initialize(Func<Process, bool> processFilter)
+        public void Initialize(string blocklyPath, Func<Process, bool> processFilter)
         {
+            this.blocklyPath = blocklyPath;
+
             // TODO: Only works if there are no existing chrome processes...
             // Should at least wait for them to close
             // TODO: Get default or available browser; use specific file location
@@ -194,7 +197,7 @@ namespace WindowsAPI
             {
                 try
                 {
-                    string target = "file:///C:/xampp/htdocs/farmbot-blockly/step-execution.html";
+                    string target = blocklyPath;
                     var browserProcess = new Process();
                     browserProcess.StartInfo.FileName = path;
                     browserProcess.StartInfo.Arguments =  $"{target} --chrome --incognito --kiosk";

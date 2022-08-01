@@ -57,6 +57,7 @@ namespace StardewBot
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
+
             instance = this;
             ModHelper = helper;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
@@ -137,9 +138,23 @@ namespace StardewBot
         {
             // Note: Does not work curretly
             GameRunner.instance.Exiting += Instance_Exiting;
+
             var bounds = Game1.game1.Window.ClientBounds;
             Dispatcher.ResizeBlockly(bounds.Width, bounds.Height);
-            Overlay.Initialize();
+
+            try
+            {
+                var config = Helper.ModContent.Load<Dictionary<string, string>>("assets/config.json");
+                string blocklyPath = config["blocklyPath"];
+                Logger.Log("Blockly path: " + blocklyPath);
+                // TODO: Create smart default instead of crashing
+
+                Overlay.Initialize(blocklyPath);
+            }
+            catch
+            {
+                throw new Exception("Please create assets/config.json and specify a 'blocklyPath'");
+            }
         }
 
         private void Instance_Exiting(object sender, EventArgs e)
