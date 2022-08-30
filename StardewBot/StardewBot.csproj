@@ -8,12 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Overlays\SharedMemoryOverlay.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BlocklyBridge\BlocklyBridge.csproj" />
-    <ProjectReference Include="..\BrowserCommon\BrowserCommon.csproj" />
     <ProjectReference Include="..\WindowsAPI\WindowsAPI.csproj" />
   </ItemGroup>
 
