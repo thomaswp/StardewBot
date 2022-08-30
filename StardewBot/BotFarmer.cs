@@ -183,7 +183,7 @@ namespace StardewBot
 					items[position] = item;
 					return null;
 				}
-				if (item != null && items[position].maximumStackSize() != -1 && items[position].Name.Equals(item.Name) && items[position].ParentSheetIndex == item.ParentSheetIndex && (!(item is Object) || !(items[position] is Object) || (item as Object).quality == (items[position] as Object).quality))
+				if (item != null && items[position].maximumStackSize() != -1 && items[position].Name.Equals(item.Name) && items[position].ParentSheetIndex == item.ParentSheetIndex && (!(item is Object) || !(items[position] is Object) || (item as Object).Quality == (items[position] as Object).Quality))
 				{
 					int stackLeft = items[position].addToStack(item);
 					if (stackLeft <= 0)
@@ -233,7 +233,7 @@ namespace StardewBot
 			{
 				Game1.drawTool(dummyFarmer);
 			}
-			Logger.Log("draw");
+			//Logger.Log("draw");
 			//dummyFarmer.draw(b, alpha);
 		}
 
@@ -247,7 +247,7 @@ namespace StardewBot
 					((Tool)items[i]).tickUpdate(time, dummyFarmer);
 				}
 			}
-			Logger.Log("update");
+			//Logger.Log("update");
 			dummyFarmer.update(time, location, id, move);
 		}
 

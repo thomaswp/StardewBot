@@ -4,13 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StardewBot
+namespace StardewBot.Levels
 {
-    public enum Direction
+    public class Ifs3 : Level
     {
-        Up,
-        Right,
-        Down,
-        Left
+        public override string MapName => "ifs-3-types";
     }
 }

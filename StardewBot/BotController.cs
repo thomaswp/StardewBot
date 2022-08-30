@@ -1,4 +1,6 @@
 ﻿using BlocklyBridge;
+using Farmtronics;
+using Microsoft.Xna.Framework;
 using StardewValley;
 using System;
 using System.Collections.Generic;
@@ -12,21 +14,24 @@ namespace StardewBot
     {
         public readonly string Guid;
         public readonly string Name;
-        public readonly BotFarmer NPC;
+        public readonly Bot Bot;
 
         private Dictionary<Type, IBehavior> behaviors = new Dictionary<Type, IBehavior>();
         private MethodQueue queue = new BlocklyBridge.MethodQueue();
 
-        public BotController(BotFarmer npc, string guid)
+        public BotController(Bot bot, string guid)
         {
-            NPC = npc;
-            Name = npc.displayName;
+            Bot = bot;
+            Name = bot.Name;
             Guid = guid;
 
             ModEntry.Dispatcher.Register(this);
 
             foreach (IBehavior behavior in new IBehavior[] {
+                new Events(this),
                 new Movement(this),
+                new Sensing(this),
+                new Tools(this),
             })
             {
                 behaviors.Add(behavior.GetType(), behavior);
@@ -54,15 +59,24 @@ namespace StardewBot
             throw new NotImplementedException("Unknown type: " + declaringType.Name);
         }
 
-        public void Update()
+        public bool TryTestCode()
         {
-            foreach (var behavior in behaviors.Values) behavior.Update();
+            Levels.Level.OnTesting(this);
+            var events = behaviors.Values.Where(b => b is Events).First() as Events;
+            events.OnCodeTested();
+            if (ModEntry.Overlay.Showing) ModEntry.Overlay.Hide();
+            return true;
+        }
+
+        public void Update(GameTime time)
+        {
+            foreach (var behavior in behaviors.Values) behavior.Update(time);
             queue.Update();
         }
     }
 
     public interface IBehavior
     {
-        void Update();
+        void Update(GameTime time);
     }
 }

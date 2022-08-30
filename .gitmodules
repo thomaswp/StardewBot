@@ -1,3 +1,6 @@
 [submodule "BlocklyBridge"]
 	path = BlocklyBridge
 	url = https://github.com/thomaswp/BlocklyBridge.git
+[submodule "Farmbot-Blockly"]
+	path = Farmbot-Blockly
+	url = https://github.com/thomaswp/Farmbot-Blockly

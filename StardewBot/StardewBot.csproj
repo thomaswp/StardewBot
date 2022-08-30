@@ -2,14 +2,25 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BlocklyBridge\BlocklyBridge.csproj" />
+    <ProjectReference Include="..\BrowserCommon\BrowserCommon.csproj" />
+    <ProjectReference Include="..\WindowsAPI\WindowsAPI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SharedMemory">
+      <HintPath>..\..\..\..\.nuget\packages\sharedmemory\2.3.2\lib\netstandard2.1\SharedMemory.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Browser.Host</RootNamespace>
+    <Platforms>AnyCPU</Platforms>
+    <CefSharpBuildAction>Content</CefSharpBuildAction>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x86</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CefSharp.Common.NETCore" Version="101.0.150" />
+    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="101.0.150" />
+    <PackageReference Include="SharedMemory" Version="2.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BrowserCommon\BrowserCommon.csproj" />
+  </ItemGroup>
+
+</Project>
