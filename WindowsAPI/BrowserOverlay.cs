@@ -115,14 +115,14 @@ namespace WindowsAPI
         public bool Running => browserProcess != null && BrowserWindowHandle != IntPtr.Zero;
         public bool Initialized { get; private set; }
 
-        public void Initialize(string blocklyPath, Func<Process, bool> processFilter)
+        public void Initialize(string blocklyPath, string browserPath, Func<Process, bool> processFilter)
         {
             this.blocklyPath = blocklyPath;
 
             // TODO: Only works if there are no existing chrome processes...
             // Should at least wait for them to close
             // TODO: Get default or available browser; use specific file location
-            LaunchBrowser();
+            LaunchBrowser(browserPath);
             if (browserProcess == null) return;
             Task.Run(() =>
             {
@@ -183,15 +183,15 @@ namespace WindowsAPI
             //Hide();
         }
 
-        private void LaunchBrowser()
+        private void LaunchBrowser(string browserPath)
         {
             // TODO: Add firefox (with firefox -kiosk -private-window) after fixing websocket bug...
-            string[] browserPaths =
-            {
+            List<string> browserPaths = new List<string>(new string[] {
+                browserPath,
                 Environment.GetEnvironmentVariable("ProgramFiles(x86)") + @"\Google\Chrome\Application\chrome.exe",
                 Environment.GetEnvironmentVariable("ProgramFiles(x86)") + @"\Google\Chrome\Application\chrome.exe",
                 Environment.GetEnvironmentVariable("ProgramFiles") + @"\Google\Chrome\Application\chrome.exe",
-            };
+            });
 
             foreach (string path in browserPaths)
             {

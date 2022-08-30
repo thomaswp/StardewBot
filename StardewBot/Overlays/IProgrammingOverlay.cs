@@ -8,7 +8,7 @@ namespace StardewBot.Overlays
 {
     public interface IProgrammingOverlay : IDisposable
     {
-        public void Initialize(string blocklyPath);
+        public void Initialize(string blocklyPath, string browserPath);
         public bool Showing { get; }
         public void Show();
         public void Hide();

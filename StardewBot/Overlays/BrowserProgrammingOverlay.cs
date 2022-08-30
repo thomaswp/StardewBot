@@ -20,12 +20,12 @@ namespace StardewBot.Overlays
         {
             overlay = new BrowserOverlay();
         }
-        public void Initialize(string blocklyPath)
+        public void Initialize(string blocklyPath, string browserPath)
         {
             // TODO: Be more precise
             Task.Delay(1000).ContinueWith(t =>
             {
-                overlay.Initialize(blocklyPath, p => p.ProcessName == "StardewModdingAPI");
+                overlay.Initialize(blocklyPath, browserPath, p => p.ProcessName == "StardewModdingAPI");
             });
         }
         

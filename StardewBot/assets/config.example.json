@@ -1,3 +1,5 @@
 {
-  "blocklyPath": "file:///C:/path/to/this/repo/Farmbot-Blockly/step-execution.html"
+  "blocklyPath": "file:///C:/path/to/this/repo/Farmbot-Blockly/step-execution.html",
+  // Add any paths that should be checked for a browser like Chrome
+  "browserPath": ""
 }

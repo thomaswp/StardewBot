@@ -146,10 +146,11 @@ namespace StardewBot
             {
                 var config = Helper.ModContent.Load<Dictionary<string, string>>("assets/config.json");
                 string blocklyPath = config["blocklyPath"];
-                Logger.Log("Blockly path: " + blocklyPath);
+                string browserPath = config["browserPath"];
+                // Logger.Log("Blockly path: " + blocklyPath);
                 // TODO: Create smart default instead of crashing
 
-                Overlay.Initialize(blocklyPath);
+                Overlay.Initialize(blocklyPath, browserPath);
             }
             catch
             {
