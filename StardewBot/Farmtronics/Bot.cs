@@ -17,10 +17,16 @@ using StardewValley.Network;
 using StardewValley.TerrainFeatures;
 using StardewValley.Objects;
 using StardewBot;
+using StardewBot.Levels;
 using BlocklyBridge;
 using static StardewValley.Debris;
 
 namespace Farmtronics {
+	public class MovedArgs : EventArgs
+	{
+		public Point? botLocation { get; set; }
+	}
+
 	public class Bot : StardewValley.Object {
 
 		public IList<Item> inventory {  get {  return farmer == null ? null : farmer.Items; } }
@@ -28,6 +34,9 @@ namespace Farmtronics {
 		public Color statusColor = Color.Yellow;
 		public BotController Controller { get; private set; }
         public int energy {  get {  return farmer == null ? 0 : (int)farmer.Stamina; } }
+
+		public Conditions ConName;
+
 
 		public GameLocation CurrentLocation {
 			get { return farmer.currentLocation; }
@@ -607,6 +616,17 @@ namespace Farmtronics {
 				var posRect = feature.getBoundingBox(newTile);
 				feature.doCollisionAction(posRect, 4, newTile, null, location);
 			}
+
+			MovedArgs ma = new MovedArgs();
+			ma.botLocation = farmer.getTileLocationPoint();
+			OnMoved(ma);
+		}
+
+		protected virtual void OnMoved(MovedArgs e)
+        {
+			ConName = Level.CurrentLevel.getLevelConditions(); 
+			ConName.moveHandler?.Invoke(this, e);
+
 		}
 
 		public static int DxForDirection(int direction) {

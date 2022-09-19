@@ -26,21 +26,33 @@ namespace StardewBot.Levels
         protected Map levelMap;
         protected Point botStart;
         protected Point levelOffset;
-        protected Point? botGoal;
+        protected static Point? botGoal;
+        protected static List<Point?> botGoals;
         protected int startFacingDir;
         protected Bot bot;
 
         public static GameLocation FieldLocation { get; private set; }
         public static Level CurrentLevel { get; private set; }
 
+        protected abstract Conditions levelConditions
+        {
+            get; set;
+        }
+
         static Dictionary<string, Level> levelsDict = new();
+
+        public abstract Conditions getLevelConditions();
+        public abstract void setUpConditions();
 
         static Level()
         {
             foreach (var level in new Level[]
             {
+                //This needs to be changed! The map name is set to the last level initilized
                 new Loops1(),
-                new Ifs3(),
+                new CamLevel(),
+                new Ifs3()
+                
             })
             {
                 levelsDict.Add(level.ID, level);
@@ -50,6 +62,7 @@ namespace StardewBot.Levels
         protected void LoadLocation(IModHelper helper)
         {
             //string mapAssetKey = helper.ModContent.GetInternalAssetName(MapPathRoot + MapName + ".tmx").BaseName;
+            //This needs to be changed! The map name is set to the last level initilized
             levelMap = helper.ModContent.Load<Map>(MapPathRoot + MapName + ".tmx");
 
             //foreach (var tilesheet in FieldLocation.Map.TileSheets)
@@ -60,15 +73,18 @@ namespace StardewBot.Levels
 
         protected void Setup()
         {
-            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30);
+            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30); 
 
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
             var start = FindTilePointWithProperty(back, "BotStart");
             var goal = FindTilePointWithProperty(back, "BotGoal");
+            /*var goals = FindTilePointsWithProperty(back, "BotGoal");*/
+            
             Logger.Log(anchor);
             Logger.Log(start);
-            Logger.Log(goal);
+            Logger.Log(goal); 
+            /*Logger.Log(goals);*/
 
             if (anchor == null)
             {
@@ -85,6 +101,12 @@ namespace StardewBot.Levels
             Point offset = (Point)(entry - anchor);
             botStart = (Point)(start + offset);
             botGoal = goal + offset;
+
+            /*foreach( var goal in goals )
+            {
+                botGoals.Add(goal + offset);
+            }*/
+
             levelOffset = offset;
             Logger.Log("Offset: " + offset);
 
@@ -127,6 +149,14 @@ namespace StardewBot.Levels
                     }
                 }
             }
+
+            setUpConditions();
+        }
+
+        public static void levelCleared()
+        {
+            Logger.Log("You cleared the level!");
+            /*CurrentLevel.ResetBot();*/
         }
 
         public static void OnTesting(BotController botController)
@@ -215,6 +245,22 @@ namespace StardewBot.Levels
                 }
             }
             return null;
+        }
+
+        private static List<Point?> FindTilePointsWithProperty(Layer layer, string property)
+        {
+            List<Point?> tiles = new List<Point?>();
+            for (int x = 0; x < layer.TileWidth; x++)
+            {
+                for (int y = 0; y < layer.TileHeight; y++)
+                {
+                    var tile = layer.Tiles[x, y];
+                    if (tile == null) continue;
+                    tile.Properties.TryGetValue(property, out var value);
+                    if (value != null) if (value != null) tiles.Add(new Point(x, y));
+                }
+            }
+            return tiles;
         }
 
         private static Tile FindTileWithProperty(Layer layer, string property)

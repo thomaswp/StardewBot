@@ -150,7 +150,7 @@ namespace StardewBot
                 // Logger.Log("Blockly path: " + blocklyPath);
                 // TODO: Create smart default instead of crashing
 
-                Overlay.Initialize(blocklyPath, browserPath);
+                Overlay.Initialize(blocklyPath, browserPath); 
             }
             catch
             {
