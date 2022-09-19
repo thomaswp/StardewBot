@@ -73,12 +73,12 @@ namespace StardewBot.Levels
 
         protected void Setup()
         {
-            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30); 
+            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30);
 
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
             var start = FindTilePointWithProperty(back, "BotStart");
-            var goal = FindTilePointWithProperty(back, "BotGoal");
+            var goal = FindTilePointWithProperty(back, "BotGoal"); 
             /*var goals = FindTilePointsWithProperty(back, "BotGoal");*/
             
             Logger.Log(anchor);
@@ -156,7 +156,8 @@ namespace StardewBot.Levels
         public static void levelCleared()
         {
             Logger.Log("You cleared the level!");
-            /*CurrentLevel.ResetBot();*/
+            Game1.drawObjectDialogue("You cleared the level!");
+            CurrentLevel.ResetBot();
         }
 
         public static void OnTesting(BotController botController)

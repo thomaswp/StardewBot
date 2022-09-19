@@ -618,7 +618,7 @@ namespace Farmtronics {
 			}
 
 			MovedArgs ma = new MovedArgs();
-			ma.botLocation = farmer.getTileLocationPoint();
+			ma.botLocation = new Point((int)newTile.X, (int)newTile.Y);
 			OnMoved(ma);
 		}
 
