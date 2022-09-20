@@ -73,7 +73,8 @@ namespace StardewBot.Levels
 
         protected void Setup()
         {
-            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30);
+            FieldLocation.IsFarm = true;
+            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30); 
 
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
