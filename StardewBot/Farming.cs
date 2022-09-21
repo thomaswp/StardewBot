@@ -63,5 +63,60 @@ namespace StardewBot
             return DoInstantly(() => Game1.drawObjectDialogue(message));
         }
 
+
+
+        //TODO Add lists to Blockly Parameter Generation 
+        public IList<Item> inventorySeeds
+        {
+            get
+            {
+                IList<Item> seeds = new List<Item>();
+
+                foreach (var item in Bot.inventory)
+                {
+                    if (item.Category.Equals(StardewValley.Object.SeedsCategory))
+                    {
+                        seeds.Add(item);
+                    }
+                }
+
+                return seeds;
+            }
+        }
+
+        [ScriptableMethod]
+        public AsyncMethod plantSeed()
+        {
+            int seed = -1;
+
+            var botInventory = Bot.inventory;
+
+            for (int i = 0; i < botInventory.Count; i++)
+            {
+                if (botInventory[i].Category.Equals(StardewValley.Object.SeedsCategory))
+                {
+                    seed = i;
+                    break;
+                }
+            }
+
+            //foreach(var item in botInventory)
+            //{
+            //    if (item.Category.Equals(StardewValley.Object.SeedsCategory))
+            //    {
+            //        seed = item;
+            //        break;
+            //    }
+            //} 
+
+            if (seed >= 0)
+            {
+                Bot.CurrentToolIndex = seed;
+                return DoInstantly(() => Bot.PlaceItem());
+            }
+
+            return null;
+        }
+
     }
 }
