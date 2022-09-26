@@ -19,7 +19,7 @@ namespace StardewBot.Levels
         public override void setUpConditions()
         {
             levelConditions = new Conditions();
-            levelConditions.addLocationCondition(botGoal);
+            levelConditions.AddLocationCondition(botGoal);
         }
 
         public override Conditions getLevelConditions()

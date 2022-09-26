@@ -154,10 +154,11 @@ namespace StardewBot.Levels
             setUpConditions();
         }
 
-        public static void levelCleared()
+        public async static void levelCleared()
         {
             Logger.Log("You cleared the level!");
             Game1.drawObjectDialogue("You cleared the level!");
+            await Task.Delay(4000);
             CurrentLevel.ResetBot();
         }
 
