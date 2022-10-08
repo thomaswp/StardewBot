@@ -39,6 +39,11 @@ namespace StardewBot
             }
         }
 
+        public void FlagFinished()
+        {
+            Bot.FlagFinished();
+        }
+
         public void EnqueueMethod(AsyncMethod method)
         {
             queue.Enqueue(method);

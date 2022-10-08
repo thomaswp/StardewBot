@@ -1,12 +1,16 @@
 ﻿using BlocklyBridge;
 using Farmtronics;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
 using StardewValley;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using xTile;
 using xTile.Layers;
@@ -21,6 +25,7 @@ namespace StardewBot.Levels
 
         public const string FieldLocationName = "PracticeField";
         private const string MapPathRoot = "assets/maps/";
+        private const string xmlCodeRoot = "assets/xml/";
         private const string FieldMapPath = MapPathRoot + "field.tmx";
 
         protected Map levelMap;
@@ -31,18 +36,26 @@ namespace StardewBot.Levels
         protected int startFacingDir;
         protected Bot bot;
 
-        public static GameLocation FieldLocation { get; private set; }
+        public static GameLocation CurrentLocation { get; private set; }
+        public GameLocation LevelLocation { get; private set; }
         public static Level CurrentLevel { get; private set; }
 
-        protected abstract Conditions levelConditions
+        public static Dictionary<string, Level> levelsDict = new();
+        public static List<Level> GetLevels
         {
-            get; set;
+            get
+            {
+                List<Level> holder = new List<Level>();
+                foreach(var level in levelsDict.Values)
+                {
+                    holder.Add(level);
+                }
+                return holder;
+            }
         }
 
-        static Dictionary<string, Level> levelsDict = new();
+        public Sublevel currentSublevel;
 
-        public abstract Conditions getLevelConditions();
-        public abstract void setUpConditions();
 
         static Level()
         {
@@ -51,7 +64,9 @@ namespace StardewBot.Levels
                 //This needs to be changed! The map name is set to the last level initilized
                 new Loops1(),
                 new CamLevel(),
-                new Ifs3()
+                new Ifs3(),
+                new Level2Maze(),
+                new Level1_1()
                 
             })
             {
@@ -59,11 +74,51 @@ namespace StardewBot.Levels
             }
         }
 
+        internal static void LoadTutorialCode(ProgramState state, IModHelper helper)
+        {
+            foreach (var level in levelsDict.Values)
+            {
+                Sublevel holder = level.currentSublevel;
+                if (holder != null)
+                {
+                    var botXML = holder.loadBotXML(helper);
+                    if (botXML != null)
+                    {
+                        var program = state.GetProgram((String)botXML["Guid"]);
+                        program.Code = (String)botXML["Code"];
+                        program.VarMap = (String)botXML["VarMap"];
+
+                        helper.Data.WriteJsonFile(ModEntry.PROGRAMS_FILE, state);
+                    }
+                }
+            }
+        }
+
+        public static void LoadAssets(IModHelper helper)
+        {
+            foreach (var level in levelsDict.Values)
+            {
+                Sublevel holder = level.currentSublevel;
+                do
+                {
+                    if (holder == null) break;
+
+                    holder.LoadLocation(helper);
+                } while ((holder = holder.next) != null);
+
+            }
+        }
+
         protected void LoadLocation(IModHelper helper)
         {
             //string mapAssetKey = helper.ModContent.GetInternalAssetName(MapPathRoot + MapName + ".tmx").BaseName;
             //This needs to be changed! The map name is set to the last level initilized
+            string mapAssetKey = ModEntry.helper.ModContent.GetInternalAssetName(FieldMapPath).BaseName;
             levelMap = helper.ModContent.Load<Map>(MapPathRoot + MapName + ".tmx");
+            LevelLocation = new GameLocation(mapAssetKey, FieldLocationName + MapName) { IsOutdoors = true, IsFarm = true };
+            Game1.locations.Add(LevelLocation);
+
+            Setup();
 
             //foreach (var tilesheet in FieldLocation.Map.TileSheets)
             //{
@@ -71,10 +126,39 @@ namespace StardewBot.Levels
             //}
         }
 
+        public static bool LoadLevel(string id)
+        {
+            if (!levelsDict.TryGetValue(id, out var level)) return false;
+            CurrentLevel = level;
+            setUpLevel(level.currentSublevel);
+            /*level.currentSublevel.Setup();
+            level.currentSublevel.setUpConditions();
+            level.currentSublevel.TeleportToStart();*/
+            return true;
+        }
+
+        public static bool LoadNextLevel()
+        {
+            setUpLevel(CurrentLevel.currentSublevel);
+            /*CurrentLevel.currentSublevel.Setup();
+            CurrentLevel.currentSublevel.setUpConditions();
+            CurrentLevel.currentSublevel.TeleportToStart();*/
+            return true;
+        }
+
+        private static bool setUpLevel(Sublevel level)
+        {
+            /*level.Setup();*/
+            level.setUpConditions();
+            level.TeleportToStart();
+            return true;
+        }
+
+        
+
         protected void Setup()
         {
-            FieldLocation.IsFarm = true;
-            var entry = FieldLocation.GetMapPropertyPosition("Entry", 30, 30); 
+            var entry = LevelLocation.GetMapPropertyPosition("Entry", 30, 30); 
 
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
@@ -111,17 +195,17 @@ namespace StardewBot.Levels
             levelOffset = offset;
             Logger.Log("Offset: " + offset);
 
+            Tile baseSpringTile = LevelLocation.Map.GetLayer("Back").Tiles[0, 0];
+            Tile basePathsTile = LevelLocation.Map.GetLayer("Paths").Tiles[0, 0];
+
             string facingStr = back.Tiles[start.Value.X, start.Value.Y].Properties["Facing"];
             if (int.TryParse(facingStr, out int dir)) startFacingDir = dir;
-
-            Tile baseSpringTile = FieldLocation.Map.GetLayer("Back").Tiles[0, 0];
-            Tile basePathsTile = FieldLocation.Map.GetLayer("Paths").Tiles[0, 0];
 
             foreach (var layer in levelMap.Layers)
             {
                 //if (layer.Id == "Paths") continue;
 
-                var fieldLayer = FieldLocation.Map.GetLayer(layer.Id);
+                var fieldLayer = LevelLocation.Map.GetLayer(layer.Id);
                 if (fieldLayer == null)
                 {
                     Logger.Warn("Missing layer: " + layer.Id);
@@ -150,8 +234,35 @@ namespace StardewBot.Levels
                     }
                 }
             }
+        }
 
-            setUpConditions();
+        private void TeleportToStart()
+        {
+            GameLocation location = LevelLocation;
+
+            // of creating a function here, an existing function can be used, e.g. if the same function is used multiple times
+            DelayedAction.delayedBehavior TeleportFunction = () => {
+                //Insert here the coordinates you want to teleport to
+                Layer layer = location.map.GetLayer("Back");
+                Point entry = location.GetMapPropertyPosition("Entry", 30, 30);
+                int dir = (int)Direction.Right;
+
+                LevelLocation.resetForPlayerEntry();
+
+                //The teleport command itself
+                Game1.warpFarmer(new LocationRequest(location.NameOrUniqueName, location.uniqueName.Value != null, location), entry.X, entry.Y, dir);
+
+                if (this.bot != null)
+                {
+                    bot.SwitchTo();
+                }
+
+                DelayedAction.functionAfterDelay(() => ResetBot(), 1);
+            };
+
+            // Delayed action to be executed after a set time (here 0,1 seconds)
+            // Teleporting without the delay may prove to be problematic
+            DelayedAction.functionAfterDelay(TeleportFunction, 100);
         }
 
         public async static void levelCleared()
@@ -159,14 +270,35 @@ namespace StardewBot.Levels
             Logger.Log("You cleared the level!");
             Game1.drawObjectDialogue("You cleared the level!");
             await Task.Delay(4000);
-            CurrentLevel.ResetBot();
+
+            CurrentLevel.currentSublevel.DestroyBot();
+            /*CurrentLevel.currentSublevel.bot = null;*/
+
+            if (CurrentLevel.currentSublevel.next != null)
+            {
+                CurrentLevel.currentSublevel = CurrentLevel.currentSublevel.next;
+                LoadNextLevel();
+            } else
+            {
+                CurrentLevel = null;
+                Game1.warpFarmer("Farm", 64, 15, flip: false);
+            }
         }
 
         public static void OnTesting(BotController botController)
         {
             if (CurrentLevel == null) return;
-            if (CurrentLevel.bot != botController.Bot) return;
-            CurrentLevel.ResetBot();
+            if (CurrentLevel.currentSublevel == null) return;
+            if (CurrentLevel.currentSublevel.bot != botController.Bot) return;
+            CurrentLevel.currentSublevel.ResetBot();
+        }
+
+        protected void DestroyBot()
+        {
+            if(bot != null)
+            {
+                DelayedAction.functionAfterDelay(() => bot.DestroyBot(LevelLocation), 1);
+            }
         }
 
         protected void ResetBot()
@@ -176,14 +308,14 @@ namespace StardewBot.Levels
             var placementTile = new Vector2(botStart.X, botStart.Y);
             if (bot == null)
             {
-                bot = new Bot(ID, placementTile, FieldLocation);
+                bot = new Bot(ID, placementTile, LevelLocation);
                 bot.shakeTimer = 50;
             }
             else
             {
                 bot.MoveInstantlyToTile(placementTile);
             }
-            FieldLocation.overlayObjects[placementTile] = bot;
+            LevelLocation.overlayObjects[placementTile] = bot;
             bot.FacingDirection = startFacingDir;
 
             AddObjects();
@@ -191,7 +323,7 @@ namespace StardewBot.Levels
 
         protected void AddObjects()
         {
-            FieldLocation.loadWeeds();
+            LevelLocation.loadWeeds();
             //var layer = levelMap.GetLayer("Paths");
             //if (layer == null) return;
 
@@ -273,51 +405,60 @@ namespace StardewBot.Levels
             return layer.Tiles[point.Value.X, point.Value.Y];
         }
 
-        public static void LoadAssets(IModHelper helper)
+        public abstract class Sublevel : Level
         {
-            // get the internal asset key for the map file
-            string mapAssetKey = helper.ModContent.GetInternalAssetName(FieldMapPath).BaseName;
+            public Sublevel next;
 
-            // add the location
-            FieldLocation = new GameLocation(mapAssetKey, FieldLocationName) { IsOutdoors = true, IsFarm = false };
-            Game1.locations.Add(FieldLocation);
-
-            foreach (var level in levelsDict.Values)
+            public Sublevel()
             {
-                level.LoadLocation(helper);
+                next = null;
+                levelConditions = new Conditions();
             }
-        }
 
-        public static bool LoadLevel(string id)
-        {
-            if (!levelsDict.TryGetValue(id, out var level)) return false;
+            public void addLast(Sublevel next)
+            {
+                Sublevel current = this;
 
-            CurrentLevel = level;
-            level.Setup();
-            level.TeleportToStart();
-            return true;
-        }
+                while(current.next != null)
+                {
+                    current = current.next;
+                }
 
-        private void TeleportToStart()
-        {
-            GameLocation location = FieldLocation;
+                current.next = next;
+            }
 
-            // of creating a function here, an existing function can be used, e.g. if the same function is used multiple times
-            DelayedAction.delayedBehavior TeleportFunction = () => {
-                //Insert here the coordinates you want to teleport to
-                Layer layer = location.map.GetLayer("Back");
-                Point entry = location.GetMapPropertyPosition("Entry", 30, 30);
-                int dir = (int)Direction.Right;
+            public abstract Conditions levelConditions
+            {
+                get; set;
+            }
 
-                //The teleport command itself
-                Game1.warpFarmer(new LocationRequest(location.NameOrUniqueName, location.uniqueName.Value != null, location), entry.X, entry.Y, dir);
+            public abstract Conditions getLevelConditions();
+            public abstract void setUpConditions();
 
-                DelayedAction.functionAfterDelay(() => ResetBot(), 1);
-            };
+            internal JObject loadBotXML(IModHelper helper)
+            {
+                /*using (StreamReader file = File.OpenText("Levels/xml/CamExample.json"));
+                using (JsonTextReader reader = new JsonTextReader(file));*/
+                IDictionary<string, string> data;
 
-            // Delayed action to be executed after a set time (here 0,1 seconds)
-            // Teleporting without the delay may prove to be problematic
-            DelayedAction.functionAfterDelay(TeleportFunction, 100);
+                try
+                {
+                    data = helper.ModContent.Load<Dictionary<string, string>>(xmlCodeRoot + MapName + ".json");
+                    if (data == null) return null;
+                } catch
+                {
+                    return null;
+                }
+
+                JObject obj = new JObject();
+
+                foreach (var entry in data)
+                {
+                    obj.Add(entry.Key, entry.Value);
+                }
+
+                return obj;
+            }
         }
     }
 }

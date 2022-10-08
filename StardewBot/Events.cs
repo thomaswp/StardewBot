@@ -22,7 +22,7 @@ namespace StardewBot
 
         private void Input_ButtonPressed(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
-            if (e.Button == SButton.MouseRight || e.Button == SButton.MouseLeft)
+            if (e.Button == SButton.MouseLeft)
             {
                 //Vector2 tile = e.Cursor.Tile;
                 //var location = Game1.player.currentLocation;

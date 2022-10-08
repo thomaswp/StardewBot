@@ -11,6 +11,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Tools;
 
 namespace StardewBot
 {
@@ -45,12 +46,20 @@ namespace StardewBot
                 if (tool == null) continue;
                 if (tool.BaseName == "Hoe")
                 {
+                    
                     Bot.CurrentToolIndex = i;
 
                     return DoUntilFinished(() => {
-                        tool.beginUsing(Bot.CurrentLocation, (int)Bot.TileLocation.X, (int)Bot.TileLocation.Y, Bot.getFarmer);
+                        /*tool.beginUsing(Bot.CurrentLocation, (int)Bot.getPosition.X, (int)Bot.getPosition.Y, Bot.getFarmer);*/
+                        tool.DoFunction(Bot.CurrentLocation, (int)Bot.getPosition.X, (int)Bot.getPosition.Y, (int)((Game1.toolHold + 20f) / 600f) + 1, Bot.getFarmer);
+                        /*ModUtils.beginUsing(Bot.CurrentLocation, (int)Bot.getPosition.X - 64 * Bot.DxForDirection(Bot.getFarmer.FacingDirection), (int)Bot.getPosition.Y - 64 * Bot.DyForDirection(Bot.getFarmer.FacingDirection), Bot.getFarmer, tool);*/
+
                         Bot.getFarmer.setTileLocation(Bot.TileLocation);
-                        Bot.toolUseFrame = 1;
+                       /* Farmer.showToolSwipeEffect(Bot.getFarmer);
+
+                        // Count how many frames into the swipe effect we are.
+                        // We'll actually apply the tool effect later, in Update.
+                        Bot.toolUseFrame = 1;*/
                     });
                 }
             }
@@ -93,7 +102,7 @@ namespace StardewBot
 
             for (int i = 0; i < botInventory.Count; i++)
             {
-                if (botInventory[i].Category.Equals(StardewValley.Object.SeedsCategory))
+                if (botInventory[i] != null && botInventory[i].Category.Equals(StardewValley.Object.SeedsCategory))
                 {
                     seed = i;
                     break;
@@ -112,11 +121,48 @@ namespace StardewBot
             if (seed >= 0)
             {
                 Bot.CurrentToolIndex = seed;
-                return DoInstantly(() => Bot.PlaceItem());
+                return DoInstantly(() => Bot.PlaceItem((int)Bot.getPosition.X, (int)Bot.getPosition.Y));
             }
 
             return null;
         }
 
+        /**
+         * Must be forward because bot can't go over crops such as grapes/on vines
+         */
+        [ScriptableMethod]
+        public AsyncFunction<bool> IsCropForwardHandHarvestable()
+        {
+            int tileX = (int)Bot.FacingTile.X;
+            int tileY = (int)Bot.FacingTile.Y;
+            Vector2 v = new Vector2(tileX, tileY);
+            if (Bot.CurrentLocation.terrainFeatures.ContainsKey(v) && Bot.CurrentLocation.terrainFeatures[v] is HoeDirt)
+            {
+                return Result(Location.isCropAtTile(tileX, tileY) && ((HoeDirt)Bot.CurrentLocation.terrainFeatures[v]).crop.harvestMethod == 0);
+            }
+
+            return Result(false);
+            /* return Result(Location.isTileHoeDirt(Bot.FacingTile) && Bot.IsFacingClear);*/
+        }
+
+        [ScriptableMethod]
+        public AsyncFunction<bool> IsCropFullyGrown()
+        {
+            int tileX = (int)Bot.FacingTile.X;
+            int tileY = (int)Bot.FacingTile.Y;
+            Vector2 v = new Vector2(tileX, tileY);
+            if (Bot.CurrentLocation.terrainFeatures.ContainsKey(v) && Bot.CurrentLocation.terrainFeatures[v] is HoeDirt)
+            {
+                return Result(Location.isCropAtTile(tileX, tileY) && ((HoeDirt)Bot.CurrentLocation.terrainFeatures[v]).readyForHarvest());
+            }
+
+            return Result(false);
+        }
+
+        [ScriptableMethod]
+        public AsyncFunction<int> InventoryItems()
+        {
+            return Result(Bot.inventory.Count);
+        }
     }
 }

@@ -27,6 +27,10 @@ namespace StardewBot.Levels
         public event EventHandler singleConditionMet;
         public EventHandler singleConditionHandler;
 
+        public event EventHandler FinishedAction;
+        public EventHandler FinishedActionHandler;
+
+
         //Movement-Based Event and Conditions
         public event EventHandler<MovedArgs> botMoved;
         public EventHandler<MovedArgs> moveHandler;
@@ -80,8 +84,8 @@ namespace StardewBot.Levels
             conditionss = new List<ConditionInformation>();
             singleConditionHandler = singleConditionMet;
             singleConditionHandler += checkAllConditions;
-            moveHandler = botMoved;
-            moveHandler += checkLocation;
+            FinishedActionHandler = FinishedAction;
+            
         }
 
         /**
@@ -109,12 +113,20 @@ namespace StardewBot.Levels
         public void AddLocationCondition(Point? newLocation)
         {
             locationCondition holder = null;
+
+            if(!isConditionInEvent("checkLocation"))
+            {
+                FinishedActionHandler += checkLocation;
+            }
+
             if (newLocation != null)
             {
                 holder = new locationCondition(conditionType.ReachedLocation, newLocation);
                 conditionss.Add(holder);
             }
         }
+
+        
 
         /**
          * <summary>
@@ -124,19 +136,37 @@ namespace StardewBot.Levels
          * <param name="sender"> The object that made the call. </param>
          * <param name="e"> Arguments passed when the event is called. </param>
          */
-        private void checkLocation(object sender, MovedArgs e)
+        private void checkLocation(object sender, EventArgs e)
         {
             foreach(var condition in conditionss)
             {
                 if(condition.type.Equals(conditionType.ReachedLocation)) {
                     locationCondition con = (locationCondition)condition;
-                    con.botLocation = e.botLocation;
+                    Bot bot = (Bot)sender;
+                    con.bot = bot;
                     if(con.isMet)
                     {
                         singleConditionHandler.Invoke(sender, e);
                     }
                 }
             }
+
+        }
+
+        private bool isConditionInEvent(String name)
+        {
+            if (FinishedActionHandler != null && FinishedActionHandler.GetInvocationList().Any())
+            {
+                foreach (var methodDelegate in FinishedActionHandler.GetInvocationList())
+                {
+                    if (methodDelegate.Method.Name.Equals(name))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /**
@@ -148,6 +178,7 @@ namespace StardewBot.Levels
         private abstract class ConditionInformation
         {
             public conditionType type { get; private set; }
+            public Bot bot { get; set; }
             public abstract bool isMet { get; }
 
             /**
@@ -166,13 +197,11 @@ namespace StardewBot.Levels
          */
         private class locationCondition : ConditionInformation
         {
-
-            public Point? botLocation { get; set; }
             public override bool isMet
             {
                 get
                 {
-                    if (botLocation != null && goal.Equals(botLocation)) return true;
+                    if (bot.CurrentLocation.getObjectAtTile(goal.Value.X, goal.Value.Y) is Bot) return true;
                     return false;
                 }
             }
@@ -185,7 +214,6 @@ namespace StardewBot.Levels
              */
             public locationCondition(conditionType type, Point? goal) : base(type) {
                 this.goal = goal;
-                botLocation = null;
             }
 
             

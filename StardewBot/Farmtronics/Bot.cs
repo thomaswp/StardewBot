@@ -24,7 +24,6 @@ using static StardewValley.Debris;
 namespace Farmtronics {
 	public class MovedArgs : EventArgs
 	{
-		public Point? botLocation { get; set; }
 	}
 
 	public class Bot : StardewValley.Object {
@@ -55,13 +54,8 @@ namespace Farmtronics {
 			}
 		}
 
-		public Farmer getFarmer
-        {
-            get
-            {
-				return farmer;
-            }
-        }
+		public Farmer getFarmer { get{ return farmer; } }
+		public Vector2 getPosition { get { return position; } }
 
 		public Vector2 FacingTile
 		{
@@ -183,9 +177,15 @@ namespace Farmtronics {
 			NotePosition();
 
 			Controller = new BotController(this, ID);
-			ModEntry.Dispatcher.SetTarget(Controller);
+			//TODO Eventually shouldn't happen
+			SwitchTo();
 
 			instances.Add(this);
+		}
+
+		public void SwitchTo()
+        {
+			ModEntry.Dispatcher.SetTarget(Controller);
 		}
 
         public void MoveInstantlyToTile(Vector2 placementTile)
@@ -199,12 +199,14 @@ namespace Farmtronics {
 		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
 			List<Item> initialTools = new List<Item>
 	        {
-				new Hoe(),
+				new BotHoe(),
 	            new Axe(),
 	            new Pickaxe(),
 	            new MeleeWeapon(47),  // (scythe)
-	            new WateringCan()
-	        };
+	            new WateringCan(),
+				(Item)new StardewValley.Object(472, 20),
+				(Item)new StardewValley.Object(483, 20)
+			};
 
 			Name = "Bot " + uniqueFarmerID++;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
@@ -564,20 +566,21 @@ namespace Farmtronics {
 			return result;
 		}
 
-		// Place the currently selected item (e.g., seed) in/on the ground
-		// ahead of the robot.
-		public bool PlaceItem() {
+		public bool PlaceItem(int positionX, int positionY)
+        {
 			var item = inventory[CurrentToolIndex] as StardewValley.Object;
-			if (item == null) {
+			if (item == null)
+			{
 				//Debug.Log($"No item equipped in slot {currentToolIndex}");
 				return false;
 			}
-			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(placeX/64, placeY/64);
+			int placeX = positionX;
+			int placeY = positionY;
+			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
 
 			// make sure we can place the item here
-			if (!Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
+			if (!ModUtils.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer))
+			{
 				//Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
 				return false;
 			}
@@ -591,6 +594,12 @@ namespace Farmtronics {
 			if (item.Stack <= 0) inventory[CurrentToolIndex] = null;
 
 			return true;
+		}
+
+		// Place the currently selected item (e.g., seed) in/on the ground
+		// ahead of the robot.
+		public bool PlaceItem() {
+			return PlaceItem((int)position.X + 64 * DxForDirection(farmer.FacingDirection), (int)position.Y + 64 * DyForDirection(farmer.FacingDirection));
 		}
 
 		public void Move(int dColumn, int dRow) {
@@ -627,15 +636,20 @@ namespace Farmtronics {
 			}
 
 			MovedArgs ma = new MovedArgs();
-			ma.botLocation = new Point((int)newTile.X, (int)newTile.Y);
 			OnMoved(ma);
 		}
 
 		protected virtual void OnMoved(MovedArgs e)
         {
-			ConName = Level.CurrentLevel.getLevelConditions(); 
+			ConName = Level.CurrentLevel.currentSublevel.getLevelConditions(); 
 			ConName.moveHandler?.Invoke(this, e);
 
+		}
+
+		public void FlagFinished()
+        {
+			ConName = Level.CurrentLevel.currentSublevel.getLevelConditions();
+			ConName.FinishedActionHandler?.Invoke(this, new EventArgs());
 		}
 
 		public static int DxForDirection(int direction) {
@@ -917,6 +931,18 @@ namespace Farmtronics {
 			ShowMenu();
 		
 			return true;
+		}
+
+		public void DestroyBot(GameLocation location)
+        {
+			this.performRemoveAction(this.TileLocation, location);
+			//Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
+			// Remove, stop, and destroy this bot
+			Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
+
+			// TODO: stop interpreter when picked up
+			ModEntry.Dispatcher.Unregister(Controller);
+			instances.Remove(this);
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {

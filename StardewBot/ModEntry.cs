@@ -8,6 +8,7 @@ using Farmtronics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 using StardewBot.Levels;
 using StardewBot.Overlays;
 using StardewModdingAPI;
@@ -47,7 +48,7 @@ namespace StardewBot
         
         // May not actually need to save this...
         public static ProgramState State { get; private set; }
-        const string PROGRAMS_FILE = "programs.json";
+        public const string PROGRAMS_FILE = "programs.json";
 
 
         /*********
@@ -60,7 +61,6 @@ namespace StardewBot
 
             instance = this;
             ModHelper = helper;
-            helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
             helper.Events.Display.Rendered += Display_Rendered;
@@ -80,9 +80,18 @@ namespace StardewBot
 
             State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
 
+
+            var test = new JObject();
+            test.Add("Test", "testValue");
+            helper.Data.WriteJsonFile<JObject>("Levels/xml/test.json", test);
+
             Dispatcher = new Dispatcher("127.0.0.1", 8000, action => queuedActions.Enqueue(action));
 
             Assembly assembly = Assembly.GetExecutingAssembly();
+
+            Level.LoadTutorialCode(State, helper);
+            /*Dispatcher.State = State;*/
+
             Dispatcher.Start(assembly.GetTypes(), () =>
             {
                 Logger.Log("Connected!!!");
@@ -107,6 +116,15 @@ namespace StardewBot
             Overlay = new BrowserProgrammingOverlay();
         }
 
+        public static void updateState(String targetID, String codeXML, String varMapJSON)
+        {
+            var program = State.GetProgram(targetID);
+            program.Code = codeXML;
+            program.VarMap = varMapJSON;
+
+            
+        }
+
         private void Dispatcher_OnReceiveMinimize()
         {
             Overlay.Hide();
@@ -125,6 +143,14 @@ namespace StardewBot
                 Logger.Log("Toggling Overlay");
                 if (Overlay.Showing) Overlay.Hide();
                 else Overlay.Show();
+            }
+
+            if (!Context.IsWorldReady)
+                return;
+
+            if (e.Button == SButton.H)
+            {
+                toggleMenu();
             }
         }
 
@@ -203,7 +229,7 @@ namespace StardewBot
             player.addItemToInventory(new Bot("1234", null));
 
             //Level.LoadLevel("loops-line");
-            Level.LoadLevel("ifs-3-types");
+            Level.LoadLevel("CamLevel");
 
             //BotFarmer bot = new BotFarmer("Robot");
 
@@ -222,21 +248,16 @@ namespace StardewBot
         /*********
         ** Private methods
         *********/
-        /// <summary>Raised after the player presses a button on the keyboard, controller, or mouse.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event data.</param>
-        private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
+
+        private void toggleMenu()
         {
-            // ignore if player hasn't loaded a save yet
-            if (!Context.IsWorldReady)
-                return;
-
-            //if (robot != null && e.Button == SButton.O)
-            //{
-            //    //robot.tryToMoveInDirection(0, false, 0, false);
-            //    robot.jump();
-            //}
-
+            if (Game1.activeClickableMenu is Levels.TutorialMenu menu)
+            {
+                menu.exitThisMenu();
+            } else
+            {
+                Game1.activeClickableMenu = new Levels.TutorialMenu();
+            }
         }
 
 
