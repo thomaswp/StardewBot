@@ -27,6 +27,7 @@ namespace StardewBot.Levels
         private const string MapPathRoot = "assets/maps/";
         private const string xmlCodeRoot = "assets/xml/";
         private const string FieldMapPath = MapPathRoot + "field.tmx";
+        private const string OriginFieldMapPath = MapPathRoot + "originField.tmx";
 
         protected Map levelMap;
         protected Point botStart;
@@ -36,7 +37,7 @@ namespace StardewBot.Levels
         protected int startFacingDir;
         protected Bot bot;
 
-        public static GameLocation CurrentLocation { get; private set; }
+        public static GameLocation OriginLocation { get; private set; }
         public GameLocation LevelLocation { get; private set; }
         public static Level CurrentLevel { get; private set; }
 
@@ -65,7 +66,6 @@ namespace StardewBot.Levels
                 new Loops1(),
                 new CamLevel(),
                 new Ifs3(),
-                new Level2Maze(),
                 new Level1_1()
                 
             })
@@ -114,11 +114,14 @@ namespace StardewBot.Levels
             //string mapAssetKey = helper.ModContent.GetInternalAssetName(MapPathRoot + MapName + ".tmx").BaseName;
             //This needs to be changed! The map name is set to the last level initilized
             string mapAssetKey = ModEntry.helper.ModContent.GetInternalAssetName(FieldMapPath).BaseName;
+            string originMapAssetKey = ModEntry.helper.ModContent.GetInternalAssetName(OriginFieldMapPath).BaseName;
             levelMap = helper.ModContent.Load<Map>(MapPathRoot + MapName + ".tmx");
             LevelLocation = new GameLocation(mapAssetKey, FieldLocationName + MapName) { IsOutdoors = true, IsFarm = true };
+            OriginLocation = new GameLocation(originMapAssetKey, FieldLocationName + "Origin") { IsOutdoors = true, IsFarm = true };
             Game1.locations.Add(LevelLocation);
+            Game1.locations.Add(OriginLocation);
 
-            Setup();
+            //Setup();
 
             //foreach (var tilesheet in FieldLocation.Map.TileSheets)
             //{
@@ -148,7 +151,7 @@ namespace StardewBot.Levels
 
         private static bool setUpLevel(Sublevel level)
         {
-            /*level.Setup();*/
+            level.Setup();
             level.setUpConditions();
             level.TeleportToStart();
             return true;
@@ -198,8 +201,49 @@ namespace StardewBot.Levels
             Tile baseSpringTile = LevelLocation.Map.GetLayer("Back").Tiles[0, 0];
             Tile basePathsTile = LevelLocation.Map.GetLayer("Paths").Tiles[0, 0];
 
+            Tile OriginBaseSpringTile = OriginLocation.map.GetLayer("Back").Tiles[0, 0];
+            Tile OriginBasePathsTile = OriginLocation.Map.GetLayer("Paths").Tiles[0, 0];
+
             string facingStr = back.Tiles[start.Value.X, start.Value.Y].Properties["Facing"];
             if (int.TryParse(facingStr, out int dir)) startFacingDir = dir;
+
+            foreach (var layer in OriginLocation.map.Layers)
+            {
+                //if (layer.Id == "Paths") continue;
+
+                var fieldLayer = LevelLocation.Map.GetLayer(layer.Id);
+                if (fieldLayer == null)
+                {
+                    Logger.Warn("Missing layer: " + layer.Id);
+                    continue;
+                }
+
+                var baseTile = layer.Id == "Paths" ? basePathsTile : baseSpringTile;
+
+                //Logger.Log("Layer: " + layer.Id);
+                for (int x = 0; x < layer.TileWidth; x++)
+                {
+                    for (int y = 0; y < layer.TileHeight; y++)
+                    {
+                        var tile = layer.Tiles[y, x];
+                        if (tile == null)
+                        {
+                            fieldLayer.Tiles[y, x] = null;
+                            continue;
+                        }
+
+                        Tile newTile = baseTile.Clone(fieldLayer);
+                        newTile.TileIndex = tile.TileIndex;
+                        newTile.TileIndexProperties.Clear();
+                        foreach (var prop in tile.TileIndexProperties)
+                        {
+                            newTile.TileIndexProperties.Add(prop);
+                        }
+
+                        fieldLayer.Tiles[y, x] = newTile;
+                    }
+                }
+            }
 
             foreach (var layer in levelMap.Layers)
             {
