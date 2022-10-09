@@ -14,7 +14,7 @@ using xTile.Tiles;
 
 namespace StardewBot.Levels
 {
-    public class Level2Maze : Level
+    public class Level2_1 : Level
     {
         public override string MapName => "Level2-Maze";
     }

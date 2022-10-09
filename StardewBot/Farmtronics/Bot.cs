@@ -199,7 +199,6 @@ namespace Farmtronics {
 		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
 			List<Item> initialTools = new List<Item>
 	        {
-				new BotHoe(),
 	            new Axe(),
 	            new Pickaxe(),
 	            new MeleeWeapon(47),  // (scythe)
@@ -579,7 +578,7 @@ namespace Farmtronics {
 			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
 
 			// make sure we can place the item here
-			if (!ModUtils.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer))
+			if (!Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer))
 			{
 				//Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
 				return false;
