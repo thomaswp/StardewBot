@@ -66,7 +66,8 @@ namespace StardewBot.Levels
                 new Loops1(),
                 new CamLevel(),
                 new Ifs3(),
-                new Level1_1()
+                new Level1_1(),
+                new LevelMultiActionLoops_1()
                 
             })
             {
