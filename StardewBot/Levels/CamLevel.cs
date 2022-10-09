@@ -1,6 +1,7 @@
 ﻿using BlocklyBridge;
 using Farmtronics;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
 using StardewValley;
 using System;
@@ -17,22 +18,51 @@ namespace StardewBot.Levels
     public class CamLevel : Level
     {
         public override string MapName => "CamLevel";
+        
 
-        protected override Conditions levelConditions { get; set; }
-
-        //private Conditions levelConditions = new Conditions();
-
-
-        public override void setUpConditions()
+        public CamLevel()
         {
-            levelConditions = new Conditions();
-            levelConditions.AddLocationCondition(botGoal);
-            /*levelConditions.addLocation(botGoal);*/
+            this.currentSublevel = new CamExample();
+            this.currentSublevel.addLast(new CamActual());
         }
 
-        public override Conditions getLevelConditions()
+        public class CamExample : Sublevel {
+
+            public override Conditions levelConditions { get; set; }
+
+            public override string MapName => "CamExample";
+
+            public override void setUpConditions()
+            {
+                levelConditions = new Conditions();
+                levelConditions.AddLocationCondition(botGoal);
+                /*levelConditions.addLocation(botGoal);*/
+            }
+
+            public override Conditions getLevelConditions()
+            {
+                return levelConditions;
+            }
+        }
+
+        public class CamActual : Sublevel
         {
-            return levelConditions;
+
+            public override Conditions levelConditions { get; set; }
+
+            public override string MapName => "CamActual";
+
+            public override void setUpConditions()
+            {
+                levelConditions = new Conditions();
+                levelConditions.AddLocationCondition(botGoal);
+                /*levelConditions.addLocation(botGoal);*/
+            }
+
+            public override Conditions getLevelConditions()
+            {
+                return levelConditions;
+            }
         }
     }
 }
