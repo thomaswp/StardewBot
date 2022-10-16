@@ -81,9 +81,9 @@ namespace StardewBot
             State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
 
 
-            var test = new JObject();
-            test.Add("Test", "testValue");
-            helper.Data.WriteJsonFile<JObject>("Levels/xml/test.json", test);
+            //var test = new JObject();
+            //test.Add("Test", "testValue");
+            //helper.Data.WriteJsonFile<JObject>("Levels/xml/test.json", test);
 
             Dispatcher = new Dispatcher("127.0.0.1", 8000, action => queuedActions.Enqueue(action));
 
@@ -114,15 +114,6 @@ namespace StardewBot
 
             // TODO: What about resize..?
             Overlay = new BrowserProgrammingOverlay();
-        }
-
-        public static void updateState(String targetID, String codeXML, String varMapJSON)
-        {
-            var program = State.GetProgram(targetID);
-            program.Code = codeXML;
-            program.VarMap = varMapJSON;
-
-            
         }
 
         private void Dispatcher_OnReceiveMinimize()
@@ -229,7 +220,7 @@ namespace StardewBot
             player.addItemToInventory(new Bot("1234", null));
 
             //Level.LoadLevel("loops-line");
-            Level.LoadLevel("CamLevel");
+            //Level.LoadLevel("CamLevel");
 
             //BotFarmer bot = new BotFarmer("Robot");
 

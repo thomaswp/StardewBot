@@ -15,22 +15,22 @@ using xTile.Tiles;
 
 namespace StardewBot.Levels
 {
-    public class Level1_1 : Level
+    public class Functions_1 : Level
     {
-        public override string MapName => "Level1_1";
+        public override string MapName => "Functions_1-";
         
 
-        public Level1_1()
+        public Functions_1()
         {
-            this.currentSublevel = new Level1_1Example();
-            this.currentSublevel.addLast(new Level1_1Actual());
+            this.currentSublevel = new Functions_1Example();
+            this.currentSublevel.addLast(new Functions_1Actual());
         }
 
-        public class Level1_1Example : Sublevel {
+        public class Functions_1Example : Sublevel {
 
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "Level1_1Example";
+            public override string MapName => "Functions_1Example";
 
             public override void setUpConditions()
             {
@@ -45,12 +45,12 @@ namespace StardewBot.Levels
             }
         }
 
-        public class Level1_1Actual : Sublevel
+        public class Functions_1Actual : Sublevel
         {
 
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "Level1_1Actual";
+            public override string MapName => "Functions_1Actual";
 
             public override void setUpConditions()
             {

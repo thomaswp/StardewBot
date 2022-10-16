@@ -66,7 +66,7 @@ namespace StardewBot.Levels
                 new Loops1(),
                 new CamLevel(),
                 new Ifs3(),
-                new Level1_1(),
+                new LevelSingleActionLoops_1(),
                 new LevelMultiActionLoops_1()
                 
             })
@@ -289,13 +289,17 @@ namespace StardewBot.Levels
             DelayedAction.delayedBehavior TeleportFunction = () => {
                 //Insert here the coordinates you want to teleport to
                 Layer layer = location.map.GetLayer("Back");
-                Point entry = location.GetMapPropertyPosition("Entry", 30, 30);
+                Layer tileData = levelMap.GetLayer("Back");
+
+                var anchor = FindTilePointWithProperty(tileData, "Anchor");
+                Point? entry = FindTilePointWithProperty(tileData, "Entry") + levelOffset;
+                // ?? location.GetMapPropertyPosition("Entry", 30, 30)
                 int dir = (int)Direction.Right;
 
                 LevelLocation.resetForPlayerEntry();
 
                 //The teleport command itself
-                Game1.warpFarmer(new LocationRequest(location.NameOrUniqueName, location.uniqueName.Value != null, location), entry.X, entry.Y, dir);
+                Game1.warpFarmer(new LocationRequest(location.NameOrUniqueName, location.uniqueName.Value != null, location), entry.Value.X, entry.Value.Y, dir);
 
                 if (this.bot != null)
                 {

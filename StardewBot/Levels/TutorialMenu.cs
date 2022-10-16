@@ -171,7 +171,9 @@ namespace StardewBot.Levels
                     {
                         Game1.drawObjectDialogue("Could not load level " + this.pages[this.currentPage][i].MapName + ".");
                     }
-                    
+
+                    this.exitThisMenu(true);
+
                     return;
                 }
             }
@@ -185,7 +187,7 @@ namespace StardewBot.Levels
                 this.nonQuestPageBackButton();
                 return;
             }
-            if (this.currentPage > 0 && this.backButton.containsPoint(x, y))
+            if (this.backButton.containsPoint(x, y))
             {
                 base.exitThisMenu();
                 return;
@@ -242,7 +244,10 @@ namespace StardewBot.Levels
                 previousButton.bounds = new Rectangle(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 2 + this.leftWidth + 30, this.yPositionOnScreen + this.height - (IClickableMenu.borderWidth + 30), 36, 33);
             }
 
-            this.previousButton.draw(b);
+            if (this.currentPage > 0)
+            {
+                this.previousButton.draw(b);
+            }
 
             if (this.xPositionOnScreen != nextButton.bounds.X || this.yPositionOnScreen != nextButton.bounds.Y)
             {
@@ -250,8 +255,10 @@ namespace StardewBot.Levels
                 nextButton.bounds = new Rectangle(this.xPositionOnScreen + this.width - (IClickableMenu.spaceToClearSideBorder * 2 + 50), this.yPositionOnScreen + this.height - (IClickableMenu.borderWidth + 30), 36, 33);
             }
 
-            this.nextButton.draw(b);
-
+            if (this.currentPage < this.pages.Count - 1)
+            {
+                this.nextButton.draw(b);
+            }
 
             if (!Game1.options.SnappyMenus || !Game1.options.hardwareCursor)
             {
@@ -277,6 +284,10 @@ namespace StardewBot.Levels
                     Game1.playSound("Cowboy_gunshot");
                 }
             }
+
+            this.backButton.tryHover(x, y, 0.2f);
+            this.previousButton.tryHover(x, y, 0.2f);
+            this.nextButton.tryHover(x, y, 0.2f);
         }
 
         /*********
