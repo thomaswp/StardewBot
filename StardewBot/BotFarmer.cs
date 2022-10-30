@@ -112,14 +112,14 @@ namespace StardewBot
 			foreach (Item item in Game1.player.Items)
             {
 				if (item == null) continue;
-				Logger.Log($"adding {item.Name}");
+				ModEntry.logger.Log($"adding {item.Name}");
 				items.Add(item);
             }
 			CurrentToolIndex = 1;
-			//Logger.Log($"Current tool: {CurrentTool?.Name}");
-			//Logger.Log($"Current item: {items[currentToolIndex]?.Name}, is obj: {items[currentToolIndex] is Object}");
-			//Logger.Log($"Carrying: {IsCarrying()}");
-			//Logger.Log($"Active object: {ActiveObject?.Name}");
+			//ModEntry.logger.Log($"Current tool: {CurrentTool?.Name}");
+			//ModEntry.logger.Log($"Current item: {items[currentToolIndex]?.Name}, is obj: {items[currentToolIndex] is Object}");
+			//ModEntry.logger.Log($"Carrying: {IsCarrying()}");
+			//ModEntry.logger.Log($"Active object: {ActiveObject?.Name}");
 		}
 
 		public bool IsCarrying()
@@ -233,11 +233,11 @@ namespace StardewBot
 			{
 				Game1.drawTool(dummyFarmer);
 			}
-			//Logger.Log("draw");
+			//ModEntry.logger.Log("draw");
 			//dummyFarmer.draw(b, alpha);
 		}
 
-        public override void update(GameTime time, GameLocation location, long id, bool move)
+		public override void update(GameTime time, GameLocation location, long id, bool move)
         {
             base.update(time, location, id, move);
 			for (int i = items.Count - 1; i >= 0; i--)
@@ -247,7 +247,7 @@ namespace StardewBot
 					((Tool)items[i]).tickUpdate(time, dummyFarmer);
 				}
 			}
-			//Logger.Log("update");
+			//ModEntry.logger.Log("update");
 			dummyFarmer.update(time, location, id, move);
 		}
 

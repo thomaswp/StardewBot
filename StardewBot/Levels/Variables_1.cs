@@ -17,7 +17,7 @@ namespace StardewBot.Levels
 {
     public class Variables_1 : Level
     {
-        public override string MapName => "Variables_1";
+        public override string MapName => "Variables";
         
 
         public Variables_1()
@@ -55,7 +55,7 @@ namespace StardewBot.Levels
             public override void setUpConditions()
             {
                 levelConditions = new Conditions();
-                levelConditions.AddLocationCondition(botGoal);
+                levelConditions.AddInventorySpaceCondition(LevelLocation);
                 /*levelConditions.addLocation(botGoal);*/
             }
 

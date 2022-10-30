@@ -17,7 +17,7 @@ namespace StardewBot.Levels
 {
     public class Functions_1 : Level
     {
-        public override string MapName => "Functions_1-";
+        public override string MapName => "Functions";
         
 
         public Functions_1()

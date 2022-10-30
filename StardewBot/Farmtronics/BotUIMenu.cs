@@ -96,7 +96,7 @@ namespace Farmtronics {
 		}
 
 		static void print(string s) {
-			Logger.Log(s);
+			ModEntry.logger.Log(s);
 		}
 
 		public override void update(GameTime time) {
@@ -138,13 +138,13 @@ namespace Farmtronics {
 		}
 
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {
-			Logger.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
+			ModEntry.logger.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
 			//int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			//Debug.Log($"Bot.receiveLeftClick: slot={slot}");
 			base.receiveLeftClick(x, y, playSound);
 			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
 
-			Logger.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+			ModEntry.logger.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
 
 			if (heldItem == null && inDragArea(x,y)) {
 				var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
@@ -154,13 +154,13 @@ namespace Farmtronics {
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
-			Logger.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
+			ModEntry.logger.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
 			base.receiveRightClick(x, y, playSound);
 		}
 
 		// Invoked by InventoryMenu.leftClick when an item is dropped in an inventory slot.
 		void onAddItem(Item item, Farmer who) {
-			Logger.Log($"Bot.onAddItem({item}, {who}");
+			ModEntry.logger.Log($"Bot.onAddItem({item}, {who}");
 			// Note: bot inventory has already been added, so we don't really need this.
 		}
 

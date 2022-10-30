@@ -147,7 +147,38 @@ namespace Farmtronics {
 			// to the instances list.
 		}
 
-		public Bot(string id, Vector2 tileLocation, GameLocation location=null, Farmer farmer=null) :base(tileLocation, vanillaObjectTypeId) {
+		public Bot(string id, String name)
+		{
+			//Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
+			if (botSprites == null)
+			{
+				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+			}
+
+			ID = id;
+			Name = "Bot";
+			type.Value = "Crafting";
+			bigCraftable.Value = true;
+			canBeSetDown.Value = true;
+
+			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
+			// In most cases we get the Farmer from some other bot (which is about to be destroyed).
+			// But if not given one, better create one now.
+			if (farmer == null)
+			{
+				CreateFarmer(Game1.player.getTileLocation(), Game1.currentLocation, name);
+			}
+			else
+			{
+				Name = name;
+			}
+
+			// NOTE: this constructor is used for bots that are not in the world
+			// (but are in inventory, mail attachment, etc.).  So we do not add
+			// to the instances list.
+		}
+
+		public Bot(string id, Vector2 tileLocation, GameLocation location=null, Farmer farmer=null, String farmerName=null) :base(tileLocation, vanillaObjectTypeId) {
 			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
@@ -169,7 +200,14 @@ namespace Farmtronics {
 			}
 
 			if (farmer == null) {
-				CreateFarmer(tileLocation, location);
+				if(farmerName == null)
+                {
+					CreateFarmer(tileLocation, location);
+				} else
+                {
+					CreateFarmer(tileLocation, location, farmerName);
+				}
+				
 			} else {
 				Name = farmer.Name;
 			}
@@ -196,22 +234,27 @@ namespace Farmtronics {
 			NotePosition();
 		}
 
-		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
+		void CreateFarmer(Vector2 tileLocation, GameLocation location, String name)
+		{
 			List<Item> initialTools = new List<Item>
-	        {
-	            new Axe(),
-	            new Pickaxe(),
-	            new MeleeWeapon(47),  // (scythe)
+			{
+				new Axe(),
+				new Pickaxe(),
+				new MeleeWeapon(47),  // (scythe)
 	            new WateringCan(),
 				(Item)new StardewValley.Object(472, 20),
 				(Item)new StardewValley.Object(483, 20)
 			};
 
-			Name = "Bot " + uniqueFarmerID++;
+			Name = name;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
 				tileLocation * 64, 2,
 				Name, initialTools, isMale: true);
 			farmer.currentLocation = location;
+		}
+
+		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
+			CreateFarmer(tileLocation, location, "Bot " + uniqueFarmerID++);
 		}
 
 		//----------------------------------------------------------------------
@@ -237,7 +280,7 @@ namespace Farmtronics {
 		/// </summary>
 		void ApplyModData(ModDataDictionary d, bool includingEnergy=true) {
 			if (!d.GetBool(dataKey.isBot)) {
-				Logger.Log("ERROR: ApplyModData called with modData where isBot is not true!");
+				ModEntry.logger.Log("ERROR: ApplyModData called with modData where isBot is not true!");
 			}
 			Name = d.GetString(dataKey.name, name);
 			// Note: we don't load the ID here, since it's needed in the constructor
@@ -389,7 +432,7 @@ namespace Farmtronics {
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
 
-				Bot bot = new Bot(chest.modData[dataKey.id], tileLoc, inLocation);
+				Bot bot = new Bot(chest.modData[dataKey.id], tileLoc, inLocation, farmerName: chest.modData[dataKey.name]);
 				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
 				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
 
@@ -418,7 +461,9 @@ namespace Farmtronics {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
 				if (!chest.modData.GetBool(dataKey.isBot)) continue;
-				Bot bot = new Bot(chest.modData[dataKey.id], null);
+
+				
+				Bot bot = new Bot(chest.modData[dataKey.id], chest.modData.GetString(dataKey.name));
 				bot.Stack = chest.Stack;
 				items[i] = bot;
 				// Note: we assume that chests in an item list are just items,
@@ -434,7 +479,7 @@ namespace Farmtronics {
 		public static void UpdateAll(GameTime gameTime) {
 			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			for (int i=instances.Count - 1; i >= 0; i--) {
-				if (debug) Logger.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
+				if (debug) ModEntry.logger.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
 				instances[i].Update(gameTime);
 			}
 		}
@@ -640,15 +685,22 @@ namespace Farmtronics {
 
 		protected virtual void OnMoved(MovedArgs e)
         {
-			ConName = Level.CurrentLevel.currentSublevel.getLevelConditions(); 
-			ConName.moveHandler?.Invoke(this, e);
+			if(Level.CurrentLevel is not null && Level.CurrentLevel.currentSublevel is not null)
+            {
+				ConName = Level.CurrentLevel.currentSublevel.getLevelConditions();
+				ConName.moveHandler?.Invoke(this, e);
+			}
+			
 
 		}
 
 		public void FlagFinished()
         {
-			ConName = Level.CurrentLevel.currentSublevel.getLevelConditions();
-			ConName.FinishedActionHandler?.Invoke(this, new EventArgs());
+			if (Level.CurrentLevel is not null && Level.CurrentLevel.currentSublevel is not null)
+			{
+				ConName = Level.CurrentLevel.currentSublevel.getLevelConditions();
+				ConName.FinishedActionHandler?.Invoke(this, new EventArgs());
+			}
 		}
 
 		public static int DxForDirection(int direction) {
@@ -731,7 +783,7 @@ namespace Farmtronics {
 
 		public void Update(GameTime gameTime) {
 			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
-			if (debug) Logger.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}");
+			if (debug) ModEntry.logger.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}");
 
 			Controller.Update(gameTime);
 
@@ -995,7 +1047,7 @@ namespace Farmtronics {
 
 			// draw sprite
 			if (botSprites == null) {
-				Logger.Log("Bot.draw: botSprites is null; bailing out");
+				ModEntry.logger.Log("Bot.draw: botSprites is null; bailing out");
 				return;
 			}
 
@@ -1042,7 +1094,7 @@ namespace Farmtronics {
         public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//Debug.Log($"Bot.drawWhenHeld");
 			if (botSprites == null) {
-				Logger.Log("Bot.drawWhenHeld: botSprites is null; bailing out");
+				ModEntry.logger.Log("Bot.drawWhenHeld: botSprites is null; bailing out");
 				return;
 			}
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection, 0, 16, 24);
@@ -1051,7 +1103,7 @@ namespace Farmtronics {
 
         public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
 			if (botSprites == null) {
-				Logger.Log("Bot.drawInMenu: botSprites is null; bailing out");
+				ModEntry.logger.Log("Bot.drawInMenu: botSprites is null; bailing out");
 				return;
 			}
  			//Debug.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
@@ -1075,7 +1127,7 @@ namespace Farmtronics {
         public override void drawAsProp(SpriteBatch b) {
   			//Debug.Log($"Bot.drawAsProp");
  			if (botSprites == null) {
-				Logger.Log("Bot.drawAsProp: botSprites is null; bailing out");
+				ModEntry.logger.Log("Bot.drawAsProp: botSprites is null; bailing out");
 				return;
 			}
 			if (this.isTemporarilyInvisible) return;
@@ -1143,7 +1195,7 @@ namespace Farmtronics {
 		}
 
 		public void ShowMenu() {
-			Logger.Log($"{Name} ShowMenu()");
+			ModEntry.logger.Log($"{Name} ShowMenu()");
 
 			// Make sure the bot is booted up when showing the menu.
 			InitShell();

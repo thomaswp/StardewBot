@@ -28,9 +28,9 @@ namespace StardewBot
                 //var location = Game1.player.currentLocation;
                 //var loc = new xTile.Dimensions.Location((int)tile.X, (int)tile.Y);
                 //var rect = new Rectangle(loc.X, loc.Y, 1, 1);
-                //Logger.Log($"tile {tile} passable {location.isTilePassable(loc, Game1.viewport)}");
-                //Logger.Log($"tile {tile} colliding {location.isCollidingPosition(rect, Game1.viewport, true)}");
-                //Logger.Log($"tile {tile} placable {location.isTileLocationTotallyClearAndPlaceable(tile)} in {Location.Name}");
+                //ModEntry.logger.Log($"tile {tile} passable {location.isTilePassable(loc, Game1.viewport)}");
+                //ModEntry.logger.Log($"tile {tile} colliding {location.isCollidingPosition(rect, Game1.viewport, true)}");
+                //ModEntry.logger.Log($"tile {tile} placable {location.isTileLocationTotallyClearAndPlaceable(tile)} in {Location.Name}");
                 if (e.Cursor.Tile == Bot.TileLocation)
                 {
                     OnClick();

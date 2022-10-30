@@ -67,7 +67,8 @@ namespace StardewBot.Levels
             ReachedLocation, 
             HarvestedCrops,
             ItemsPlaced,
-            TilesTiled
+            TilesTiled,
+            InventorySpace
         }
 
         /**
@@ -106,6 +107,24 @@ namespace StardewBot.Levels
 
         /**
          * <summary>
+         * Adds a inventory space condition based on a single location.  
+         * </summary>
+         */
+        public void AddInventorySpaceCondition(GameLocation location)
+        {
+            inventorySpaceCondition holder = null;
+
+            if (!isConditionInEvent("CheckInventorySpace"))
+            {
+                FinishedActionHandler += CheckInventorySpace;
+            }
+
+            holder = new inventorySpaceCondition(conditionType.InventorySpace, location);
+            conditionss.Add(holder);
+        }
+
+        /**
+         * <summary>
          * Adds a location condition based on a single location.  
          * </summary>
          * <param name="newLocation"> The location where the bot needs to reach. </param> 
@@ -126,7 +145,31 @@ namespace StardewBot.Levels
             }
         }
 
-        
+        /**
+         * <summary>
+         * Checks to see if the location condition is being used. If so, it checks to see if the bots location
+         * is the same as one of the goal locations. If so, then the program checks if all other conditions are met.
+         * </summary>
+         * <param name="sender"> The object that made the call. </param>
+         * <param name="e"> Arguments passed when the event is called. </param>
+         */
+        private void CheckInventorySpace(object sender, EventArgs e)
+        {
+            foreach (var condition in conditionss)
+            {
+                if (condition.type.Equals(conditionType.InventorySpace))
+                {
+                    inventorySpaceCondition con = (inventorySpaceCondition)condition;
+                    Bot bot = (Bot)sender;
+                    con.bot = bot;
+                    if (con.isMet)
+                    {
+                        singleConditionHandler.Invoke(sender, e);
+                    }
+                }
+            }
+
+        }
 
         /**
          * <summary>
@@ -217,6 +260,39 @@ namespace StardewBot.Levels
             }
 
             
+        }
+
+        /**
+        * <summary>
+        * Specific condition for location based goals. 
+        * </summary>
+        */
+        private class inventorySpaceCondition : ConditionInformation
+        {
+            public override bool isMet
+            {
+                get
+                {
+                    if (bot.getFarmer.isInventoryFull()) {
+                        if (location.debris.Count > 0) return false;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+            protected GameLocation location { get; private set; }
+
+            /**
+             * <param name="goal"> The point which the bot needs to reach. </param>
+             * <param name="type"> The type of which the condition is. </param>
+             */
+            public inventorySpaceCondition(conditionType type, GameLocation location) : base(type)
+            {
+                this.location = location;
+            }
+
+
         }
     }
 }

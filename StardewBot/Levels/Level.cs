@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,12 +24,14 @@ namespace StardewBot.Levels
         public abstract string MapName { get; }
         public virtual string ID { get { return MapName; } }
 
+        //File Strings
         public const string FieldLocationName = "PracticeField";
         private const string MapPathRoot = "assets/maps/";
         private const string xmlCodeRoot = "assets/xml/";
         private const string FieldMapPath = MapPathRoot + "field.tmx";
         private const string OriginFieldMapPath = MapPathRoot + "originField.tmx";
 
+        //Level STate
         protected Map levelMap;
         protected Point botStart;
         protected Point levelOffset;
@@ -36,11 +39,13 @@ namespace StardewBot.Levels
         protected static List<Point?> botGoals;
         protected int startFacingDir;
         protected Bot bot;
-
-        public static GameLocation OriginLocation { get; private set; }
         public GameLocation LevelLocation { get; private set; }
-        public static Level CurrentLevel { get; private set; }
+        public Sublevel currentSublevel;
+        public bool isCompleted { get; set; }
 
+        //Static Members
+        public static GameLocation OriginLocation { get; private set; }
+        public static Level CurrentLevel { get; private set; }
         public static Dictionary<string, Level> levelsDict = new();
         public static List<Level> GetLevels
         {
@@ -55,8 +60,6 @@ namespace StardewBot.Levels
             }
         }
 
-        public Sublevel currentSublevel;
-
 
         static Level()
         {
@@ -68,14 +71,27 @@ namespace StardewBot.Levels
                 new Ifs3(),
                 new LevelSingleActionLoops_1(),
                 new LevelMultiActionLoops_1(),
-                new LevelMultiActionLoops_2()
+                new LevelMultiActionLoops_2(),
+                new Variables_1(),
+                new Functions_1()
                 
             })
             {
+                level.isCompleted = false;
                 levelsDict.Add(level.ID, level);
             }
         }
 
+        public static void resetLevelClearedDebug()
+        {
+            foreach (var level in levelsDict.Values)
+            {
+                level.isCompleted = false;
+            }
+        }
+
+        
+        //Static methods for loading levels and tutorial code
         internal static void LoadTutorialCode(ProgramState state, IModHelper helper)
         {
             foreach (var level in levelsDict.Values)
@@ -123,6 +139,8 @@ namespace StardewBot.Levels
             Game1.locations.Add(LevelLocation);
             Game1.locations.Add(OriginLocation);
 
+
+
             //Setup();
 
             //foreach (var tilesheet in FieldLocation.Map.TileSheets)
@@ -156,10 +174,15 @@ namespace StardewBot.Levels
             level.Setup();
             level.setUpConditions();
             level.TeleportToStart();
+            //level.plantCrops();
+            ModEntry.ModHelper.Events.Player.Warped += level.onWarp;
             return true;
         }
 
-        
+        public void onWarp(object sender, StardewModdingAPI.Events.WarpedEventArgs e)
+        {
+            plantCrops();
+        }
 
         protected void Setup()
         {
@@ -168,23 +191,23 @@ namespace StardewBot.Levels
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
             var start = FindTilePointWithProperty(back, "BotStart");
-            var goal = FindTilePointWithProperty(back, "BotGoal"); 
+            var goal = FindTilePointWithProperty(back, "BotGoal");
             /*var goals = FindTilePointsWithProperty(back, "BotGoal");*/
-            
-            Logger.Log(anchor);
-            Logger.Log(start);
-            Logger.Log(goal); 
-            /*Logger.Log(goals);*/
+
+            ModEntry.logger.Log(anchor);
+            ModEntry.logger.Log(start);
+            ModEntry.logger.Log(goal);
+            /*ModEntry.logger.Log(goals);*/
 
             if (anchor == null)
             {
-                Logger.Warn("No anchor for map: " + ID);
+                ModEntry.logger.Warn("No anchor for map: " + ID);
                 return;
             }
 
             if (start == null)
             {
-                Logger.Warn("No anchor for map: " + ID);
+                ModEntry.logger.Warn("No anchor for map: " + ID);
                 return;
             }
 
@@ -198,7 +221,7 @@ namespace StardewBot.Levels
             }*/
 
             levelOffset = offset;
-            Logger.Log("Offset: " + offset);
+            ModEntry.logger.Log("Offset: " + offset);
 
             Tile baseSpringTile = LevelLocation.Map.GetLayer("Back").Tiles[0, 0];
             Tile basePathsTile = LevelLocation.Map.GetLayer("Paths").Tiles[0, 0];
@@ -216,13 +239,13 @@ namespace StardewBot.Levels
                 var fieldLayer = LevelLocation.Map.GetLayer(layer.Id);
                 if (fieldLayer == null)
                 {
-                    Logger.Warn("Missing layer: " + layer.Id);
+                    ModEntry.logger.Warn("Missing layer: " + layer.Id);
                     continue;
                 }
 
                 var baseTile = layer.Id == "Paths" ? basePathsTile : baseSpringTile;
 
-                //Logger.Log("Layer: " + layer.Id);
+                //ModEntry.logger.Log("Layer: " + layer.Id);
                 for (int x = 0; x < layer.TileWidth; x++)
                 {
                     for (int y = 0; y < layer.TileHeight; y++)
@@ -254,13 +277,13 @@ namespace StardewBot.Levels
                 var fieldLayer = LevelLocation.Map.GetLayer(layer.Id);
                 if (fieldLayer == null)
                 {
-                    Logger.Warn("Missing layer: " + layer.Id);
+                    ModEntry.logger.Warn("Missing layer: " + layer.Id);
                     continue;
                 }
 
                 var baseTile = layer.Id == "Paths" ? basePathsTile : baseSpringTile;
 
-                //Logger.Log("Layer: " + layer.Id);
+                //ModEntry.logger.Log("Layer: " + layer.Id);
                 for (int x = 0; x < layer.TileWidth; x++)
                 {
                     for (int y = 0; y < layer.TileHeight; y++)
@@ -276,10 +299,18 @@ namespace StardewBot.Levels
                             newTile.TileIndexProperties.Add(prop);
                         }
 
+                        newTile.Properties.Clear();
+                        foreach (var prop in tile.Properties)
+                        {
+                            newTile.Properties.Add(prop);
+                        }
+
                         fieldLayer.Tiles[y + offset.X, x + offset.Y] = newTile;
                     }
                 }
             }
+
+            
         }
 
         private void TeleportToStart()
@@ -293,7 +324,7 @@ namespace StardewBot.Levels
                 Layer tileData = levelMap.GetLayer("Back");
 
                 var anchor = FindTilePointWithProperty(tileData, "Anchor");
-                Point? entry = FindTilePointWithProperty(tileData, "Entry") + levelOffset;
+                Point? entry = FindTilePointWithProperty(tileData, "Entry") + levelOffset ?? location.GetMapPropertyPosition("Entry", 30, 30);
                 // ?? location.GetMapPropertyPosition("Entry", 30, 30)
                 int dir = (int)Direction.Right;
 
@@ -307,32 +338,101 @@ namespace StardewBot.Levels
                     bot.SwitchTo();
                 }
 
-                DelayedAction.functionAfterDelay(() => ResetBot(), 1);
+                ResetBot();
+                //DelayedAction.functionAfterDelay(() => plantCrops(), 1000);
             };
-
             // Delayed action to be executed after a set time (here 0,1 seconds)
             // Teleporting without the delay may prove to be problematic
             DelayedAction.functionAfterDelay(TeleportFunction, 100);
+            
+        }
+
+
+
+        private void plantCrops()
+        {
+            var location = LevelLocation;
+            var back = levelMap.GetLayer("Back");
+            var tilePoints = FindTilePointsWithProperty(back, "PlantCrop");
+
+
+            foreach (var tileLocation in tilePoints)
+            {
+                var offsetPoint = tileLocation + levelOffset;
+                var x = offsetPoint.Value.X;
+                var y = offsetPoint.Value.Y;
+
+                var tile = back.Tiles[tileLocation.Value.X, tileLocation.Value.Y];
+
+                int index;
+                int harvest;
+                int water;
+
+                try
+                {
+                    int.TryParse(tile.Properties["Index"], out var idx);
+                    index = idx;
+                } catch { index = -1; }
+
+                try
+                {
+                    int.TryParse(tile.Properties["Harvestable"], out var harv);
+                    harvest = harv;
+                } catch { harvest = -1; }
+
+                try
+                {
+                    int.TryParse(tile.Properties["Watered"], out var wat);
+                    water = wat;
+                } catch { water = -1; }
+
+                location.makeHoeDirt(new Vector2(x, y), true);
+
+                var seed = new StardewValley.Object(index, 1);
+                bot.inventory.Add(seed);
+                bot.getFarmer.ActiveObject = seed;
+
+                //ModUtils.placementAction(location, x, y, seed, bot.getFarmer);
+                seed.placementAction(location, x * 64, y * 64, bot.getFarmer);
+                var feature = location.GetTerrainFeature(new Vector2(x, y));
+                if(location.isTileHoeDirt(new Vector2(x, y)) && harvest > 0)
+                {
+                    ((StardewValley.TerrainFeatures.HoeDirt)feature).crop.growCompletely();
+                }
+                if (location.isTileHoeDirt(new Vector2(x, y)) && water > 0)
+                {
+                    ((StardewValley.TerrainFeatures.HoeDirt)feature).performToolAction(new WateringCan(), 0, new Vector2(x,y), location);
+                }
+            }
         }
 
         public async static void levelCleared()
         {
-            Logger.Log("You cleared the level!");
+            ModEntry.logger.Log("You cleared the level!");
             Game1.drawObjectDialogue("You cleared the level!");
             await Task.Delay(4000);
 
-            CurrentLevel.currentSublevel.DestroyBot();
+            cleanLevel();
+            
             /*CurrentLevel.currentSublevel.bot = null;*/
 
             if (CurrentLevel.currentSublevel.next != null)
             {
+                CurrentLevel.currentSublevel.isCompleted = true;
                 CurrentLevel.currentSublevel = CurrentLevel.currentSublevel.next;
                 LoadNextLevel();
             } else
             {
+                CurrentLevel.isCompleted = true;
                 CurrentLevel = null;
                 Game1.warpFarmer("Farm", 64, 15, flip: false);
             }
+        }
+
+        private static void cleanLevel()
+        {
+            CurrentLevel.currentSublevel.DestroyBot();
+            CurrentLevel.currentSublevel.LevelLocation.terrainFeatures.Clear();
         }
 
         public static void OnTesting(BotController botController)
@@ -353,7 +453,7 @@ namespace StardewBot.Levels
 
         protected void ResetBot()
         {
-            Logger.Log("Bot Reset: " + botStart);
+            ModEntry.logger.Log("Bot Reset: " + botStart);
 
             var placementTile = new Vector2(botStart.X, botStart.Y);
             if (bot == null)
@@ -453,6 +553,22 @@ namespace StardewBot.Levels
             var point = FindTilePointWithProperty(layer, property);
             if (point == null) return null;
             return layer.Tiles[point.Value.X, point.Value.Y];
+        }
+
+        private static List<Tile> FindTilesWithProperty(Layer layer, string property)
+        {
+            List<Tile> tiles = new List<Tile>();
+            for (int x = 0; x < layer.TileWidth; x++)
+            {
+                for (int y = 0; y < layer.TileHeight; y++)
+                {
+                    var tile = layer.Tiles[x, y];
+                    if (tile == null) continue;
+                    tile.Properties.TryGetValue(property, out var value);
+                    if (value != null) if (value != null) tiles.Add(tile);
+                }
+            }
+            return tiles;
         }
 
         public abstract class Sublevel : Level

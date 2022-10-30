@@ -148,5 +148,21 @@ namespace StardewBot
         {
             return Result(Bot.IsFacingClear && Location.IsTileACrop(Bot.FacingTile));
         }
+
+        [ScriptableMethod]
+        public AsyncFunction<bool> IsBotOnTile()
+        {
+            StardewValley.Object something = null;
+            something = Bot.CurrentLocation.getObjectAtTile((int)Bot.TileLocation.X, (int)Bot.TileLocation.Y);
+            return Result( something != null && something is Bot);
+        }
+
+        [ScriptableMethod]
+        public AsyncFunction<bool> IsBotForwardTile()
+        {
+            StardewValley.Object something = null;
+            something = Bot.CurrentLocation.getObjectAtTile((int)Bot.FacingTile.X, (int)Bot.FacingTile.Y);
+            return Result(something != null && something is Bot);
+        }
     }
 }

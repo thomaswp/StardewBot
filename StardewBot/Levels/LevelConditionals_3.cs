@@ -14,21 +14,21 @@ using xTile.Tiles;
 
 namespace StardewBot.Levels
 {
-    public class LevelConditionals_2 : Level
+    public class LevelConditionals_3 : Level
     {
-        public override string MapName => "LevelConditionals_2";
+        public override string MapName => "LevelConditionals_3";
 
-        public LevelConditionals_2()
+        public LevelConditionals_3()
         {
-            this.currentSublevel = new LevelConditionals_2Example();
-            this.currentSublevel.addLast(new LevelConditionals_2Actual());
+            this.currentSublevel = new LevelConditionals_3Example();
+            this.currentSublevel.addLast(new LevelConditionals_3Actual());
         }
 
-        public class LevelConditionals_2Example : Sublevel
+        public class LevelConditionals_3Example : Sublevel
         {
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "LevelConditionals_2Example";
+            public override string MapName => "LevelConditionals_3Example";
 
             public override void setUpConditions()
             {
@@ -43,11 +43,11 @@ namespace StardewBot.Levels
         }
 
 
-        public class LevelConditionals_2Actual : Sublevel
+        public class LevelConditionals_3Actual : Sublevel
         {
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "LevelConditionals_2Actual";
+            public override string MapName => "LevelConditionals_3Actual";
 
             public override void setUpConditions()
             {

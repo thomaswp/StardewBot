@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.1" />
+    <PackageReference Include="CsvHelper" Version="29.0.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="CsvHelper">
+      <HintPath>..\CsvHelper.dll</HintPath>
+    </Reference>
+    <Reference Include="MailFrameworkMod">
+      <HintPath>..\MailFrameworkMod\MailFrameworkMod.dll</HintPath>
+    </Reference>
     <Reference Include="SharedMemory">
       <HintPath>..\..\..\..\.nuget\packages\sharedmemory\2.3.2\lib\netstandard2.1\SharedMemory.dll</HintPath>
     </Reference>

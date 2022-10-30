@@ -6,5 +6,18 @@
   "UniqueID": "StardewBot",
   "EntryDll": "StardewBot.dll",
   "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": []
+  "UpdateKeys": [],
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.DynamicGameAssets"
+    },
+    {
+      "UniqueID": "DIGUS.MailFrameworkMod"
+    },
+    {
+      "UniqueID": "Pathoschild.ContentPatcher"
+    }
+  ],
+  "DGA.FormatVersion": 2,
+  "DGA.ConditionsFormatVersion": "1.23.0"
 }

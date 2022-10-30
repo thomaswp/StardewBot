@@ -32,7 +32,8 @@ namespace StardewBot
                 new Movement(this),
                 new Sensing(this),
                 new Tools(this),
-                new Farming(this)
+                new Farming(this), 
+                new Variables(this)
             })
             {
                 behaviors.Add(behavior.GetType(), behavior);

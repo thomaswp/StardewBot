@@ -106,17 +106,17 @@ namespace StardewBot
         //    // in case the direction has changed before this is called
         //    // Therefore need a way to bail out of a method
 
-        //    Logger.Log($"new: {newTile}, passable: {IsPassable(newTile)}");
+        //    ModEntry.logger.Log($"new: {newTile}, passable: {IsPassable(newTile)}");
         //    if (!IsPassable(newTile)) return AsyncMethod.NoOp;
 
         //    Vector2 startTile = Bot.getTileLocation();
-        //    Logger.Log($"current tile: {startTile}, pos: {Bot.Position}");
+        //    ModEntry.logger.Log($"current tile: {startTile}, pos: {Bot.Position}");
 
         //    Vector2 targetPosision = TileToPos(newTile);
-        //    Logger.Log($"target tile: {newTile}, pos: {targetPosision}");
+        //    ModEntry.logger.Log($"target tile: {newTile}, pos: {targetPosision}");
 
         //    Vector2 dir = targetPosision - Bot.Position;
-        //    Logger.Log($"dir: {dir}");
+        //    ModEntry.logger.Log($"dir: {dir}");
 
         //    // TODO: Need to stop directions separately
         //    List<Func<bool>> conditions = new List<Func<bool>>();
@@ -136,7 +136,7 @@ namespace StardewBot
         //[ScriptableMethod]
         //public AsyncMethod Jump()
         //{
-        //    Logger.Log(Bot.yJumpOffset);
+        //    ModEntry.logger.Log(Bot.yJumpOffset);
         //    return new AsyncMethod()
         //        .Do(() => Bot.jump())
         //        .UpdateUntil(() => Bot.yJumpOffset != 0)
@@ -150,16 +150,16 @@ namespace StardewBot
             //NPC.updateMovement(NPC.currentLocation, Game1.currentGameTime);
             //if (NPC.isMoving() && location.isCollidingPosition(NPC.nextPosition(NPC.getDirection()), Game1.viewport, true))
             //{
-            //    Logger.Log($"Stopping at {location.Name} for {NPC.nextPosition(NPC.getDirection())}");
+            //    ModEntry.logger.Log($"Stopping at {location.Name} for {NPC.nextPosition(NPC.getDirection())}");
             //    var playerPos = player.nextPosition(player.getDirection());
-            //    Logger.Log($"Player is {playerPos} {location.isCollidingPosition(playerPos, Game1.viewport, true)}");
+            //    ModEntry.logger.Log($"Player is {playerPos} {location.isCollidingPosition(playerPos, Game1.viewport, true)}");
             //    NPC.Halt();
             //}
             //if (Bot.isMoving() && !location.isTilePassable(Bot.nextPositionTile(), Game1.viewport))
             //{
-            //    Logger.Log($"Stopping at {location.Name} for {Bot.nextPositionTile()}");
+            //    ModEntry.logger.Log($"Stopping at {location.Name} for {Bot.nextPositionTile()}");
             //    var playerTile = player.nextPositionTile();
-            //    Logger.Log($"Player is {playerTile} {location.isTilePassable(playerTile, Game1.viewport)}");
+            //    ModEntry.logger.Log($"Player is {playerTile} {location.isTilePassable(playerTile, Game1.viewport)}");
             //    Bot.Halt();
             //}
             //Bot.MovePosition(Game1.currentGameTime, Game1.viewport, location);
@@ -171,12 +171,12 @@ namespace StardewBot
             //    if (inDialog)
             //    {
             //        OnDialogStart();
-            //        Logger.Log("Dialog starting!");
+            //        ModEntry.logger.Log("Dialog starting!");
             //    }
             //    else
             //    {
             //        OnDialogEnd();
-            //        Logger.Log("Dialog ended!");
+            //        ModEntry.logger.Log("Dialog ended!");
             //    }
             //}
         }

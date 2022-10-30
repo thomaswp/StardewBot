@@ -1,0 +1,15 @@
+[
+  {
+    "$ItemType": "Object",
+    "ID": "Bot Phone",
+    "Texture": "BotPhone.png",
+    "Category": "Crafting",
+    "SellPrice": null,
+    "CanTrash": false,
+    "HideFromShippingCollection": true,
+    "IsGiftable": false,
+    "ContextTags": [
+      "Bot"
+    ]
+  }
+]

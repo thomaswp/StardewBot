@@ -6,9 +6,6 @@
  <tileset firstgid="1976" name="paths" tilewidth="16" tileheight="16" tilecount="36" columns="4">
   <image source="paths.png" trans="000000" width="64" height="144"/>
  </tileset>
- <tileset firstgid="2012" name="z_Objective" tilewidth="16" tileheight="16" tilecount="35" columns="7">
-  <image source="customImage.png" width="112" height="80"/>
- </tileset>
  <layer id="2" name="Paths" width="30" height="10">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

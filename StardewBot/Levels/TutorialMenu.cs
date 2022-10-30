@@ -48,9 +48,12 @@ namespace StardewBot.Levels
         public TutorialMenu()
         : base(Game1.uiViewport.Width / 2 - (800 + IClickableMenu.borderWidth * 2) / 2, Game1.uiViewport.Height / 2 - (600 + IClickableMenu.borderWidth * 2) / 2, 800 + IClickableMenu.borderWidth * 2, 600 + IClickableMenu.borderWidth * 2, showUpperRightCloseButton: true)
         {
-            leftWidth = 180;
+            ModEntry.logger.Log("You opened the menu", action: "TutorialMenu.Opened");
+            leftWidth = 230;
             clearTop = IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearTopBorder;
             buttonTotalHeight = 460;
+
+            Game1.currentSpeaker = Game1.getCharacterFromName("Sebastion");
 
             this.paginateLevels();
 
@@ -202,13 +205,18 @@ namespace StardewBot.Levels
             base.update(time);
         }
 
+        private void drawPortrait(int x, int y, SpriteBatch b)
+        {
+
+        }
+
         public override void draw(SpriteBatch b)
         {
             int topPadding = 5;
             //Draws darkness over background
             b.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, Color.Black * 0.4f);
             //Draws backgorund box with vertical partition.
-            Game1.drawDialogueBox(this.xPositionOnScreen, this.yPositionOnScreen, this.width, this.height, speaker: false, drawOnlyBox: true);
+            Game1.drawDialogueBox(this.xPositionOnScreen, this.yPositionOnScreen, this.width, this.height, speaker: true, drawOnlyBox: true);
             base.drawVerticalPartition(b, this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder + this.leftWidth);
 
             
@@ -220,15 +228,20 @@ namespace StardewBot.Levels
 
             for (int i = 0; i < this.TutorialButtons.Count; i++)
             {
-                if(this.pages.Count() > 0 && this.pages[this.currentPage].Count() > i)
+                if (this.pages.Count() > 0 && this.pages[this.currentPage].Count() > i)
                 {
-                    this.TutorialButtons[i].bounds.X = this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 4 + this.leftWidth + 45;
+                    this.TutorialButtons[i].bounds.X = this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 4 + this.leftWidth + 23;
                     this.TutorialButtons[i].bounds.Y = this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth + topPadding * 2 + i * (buttonTotalHeight / 6); ;
-                    IClickableMenu.drawTextureBox(b, Game1.mouseCursors, new Rectangle(384, 396, 15, 15), this.TutorialButtons[i].bounds.X, this.TutorialButtons[i].bounds.Y, this.TutorialButtons[i].bounds.Width, this.TutorialButtons[i].bounds.Height, this.TutorialButtons[i].containsPoint(Game1.getOldMouseX(), Game1.getOldMouseY()) ? Color.Wheat : Color.White, 4f, drawShadow: false);
-
-                    SpriteText.drawString(b, this.pages[this.currentPage][i].MapName, this.TutorialButtons[i].bounds.X + 128 + 4, this.TutorialButtons[i].bounds.Y + 15);
+                    //Text Box
+                    IClickableMenu.drawTextureBox(b, Game1.mouseCursors, new Rectangle(384, 396, 15, 15), this.TutorialButtons[i].bounds.X, this.TutorialButtons[i].bounds.Y, this.TutorialButtons[i].bounds.Width, this.TutorialButtons[i].bounds.Height, this.pages[this.currentPage][i].isCompleted ? new Color(224, 191, 128) : this.TutorialButtons[i].containsPoint(Game1.getOldMouseX(), Game1.getOldMouseY())  ? Color.Wheat : Color.White, 4f, drawShadow: false);
+                    
+                    //Level Text
+                    //SpriteText.drawString(b, this.pages[this.currentPage][i].MapName, this.TutorialButtons[i].bounds.X + 48 + 4, this.TutorialButtons[i].bounds.Y + 15);
+                    Utility.drawTextWithShadow(b, this.pages[this.currentPage][i].MapName, Game1.dialogueFont, new Vector2(this.TutorialButtons[i].bounds.X + 36 + 4, this.TutorialButtons[i].bounds.Y + 15), this.pages[this.currentPage][i].isCompleted ? new Color(36, 26, 36) : Game1.textColor, 1f, 0.1f);
+                    //Checkbox
+                    b.Draw(Game1.mouseCursors, new Vector2(this.TutorialButtons[i].bounds.X + this.TutorialButtons[i].bounds.Width - 64, this.TutorialButtons[i].bounds.Y + 20), this.pages[this.currentPage][i].isCompleted ? OptionsCheckbox.sourceRectChecked : OptionsCheckbox.sourceRectUnchecked, Color.White * 1f, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.4f);
                 }
-                
+
             }
             if(this.xPositionOnScreen != backButton.bounds.X || this.yPositionOnScreen != backButton.bounds.Y)
             {
@@ -268,6 +281,12 @@ namespace StardewBot.Levels
            /* Game1.drawDialogueBox(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder + 10, this.yPositionOnScreen + spaceToClearTopBorder + 200, this.leftWidth - 10, 300, message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", speaker: true, drawOnlyBox: true);*/
         }
 
+        protected override void cleanupBeforeExit()
+        {
+            ModEntry.logger.Log("You closed the menu", action: "TutorialMenu.Closed");
+            Game1.currentSpeaker = null;
+            base.cleanupBeforeExit();
+        }
         public override void performHoverAction(int x, int y)
         {
             this.hoverAmount = -1;

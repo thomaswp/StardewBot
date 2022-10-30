@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using BlocklyBridge;
 using Farmtronics;
+using MailFrameworkMod;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using StardewBot.API;
 using StardewBot.Levels;
 using StardewBot.Overlays;
 using StardewModdingAPI;
@@ -19,6 +22,7 @@ using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
 using WindowsAPI;
 using xTile.Layers;
+using static StardewValley.GameLocation;
 
 namespace StardewBot
 {
@@ -45,10 +49,15 @@ namespace StardewBot
 
         internal static ModEntry instance;
         public static IModHelper helper => ModHelper;
-        
+
+
         // May not actually need to save this...
         public static ProgramState State { get; private set; }
         public const string PROGRAMS_FILE = "programs.json";
+
+        public static StardewLogger logger;
+
+        DGAAPI dga;
 
 
         /*********
@@ -58,9 +67,14 @@ namespace StardewBot
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
+            
 
             instance = this;
             ModHelper = helper;
+            logger = new StardewLogger(Monitor);
+
+            logger.LogSessionStart();
+
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
             helper.Events.Display.Rendered += Display_Rendered;
@@ -94,9 +108,9 @@ namespace StardewBot
 
             Dispatcher.Start(assembly.GetTypes(), () =>
             {
-                Logger.Log("Connected!!!");
+                logger.Log("Connected!!!");
                 Dispatcher.State = State;
-                Logger.Log("Loading: " + State.ToJSON());
+                logger.Log("Loading: " + State.ToJSON());
                 if (Bot.instances.Count > 0)
                 {
                     Dispatcher.SetTarget(Bot.instances[0].Controller);
@@ -109,11 +123,14 @@ namespace StardewBot
             //// GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             //int width = bounds.Width;
             //int height = bounds.Height;
-            //Logger.Log($"Width: {width}; Height: {height}");
+            //logger.Log($"Width: {width}; Height: {height}");
             //Overlay = new WebOverlay(helper, width, height);
 
             // TODO: What about resize..?
             Overlay = new BrowserProgrammingOverlay();
+
+            
+
         }
 
         private void Dispatcher_OnReceiveMinimize()
@@ -123,18 +140,18 @@ namespace StardewBot
 
         private void Display_WindowResized(object sender, WindowResizedEventArgs e)
         {
-            Logger.Log("Resizing to: " + e.NewSize);
+            logger.Log("Resizing to: " + e.NewSize);
             Dispatcher.ResizeBlockly(e.NewSize.X, e.NewSize.Y);
         }
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if (e.Button == SButton.X)
-            {
-                Logger.Log("Toggling Overlay");
-                if (Overlay.Showing) Overlay.Hide();
-                else Overlay.Show();
-            }
+            //if (e.Button == SButton.X)
+            //{
+            //    logger.Log("Toggling Overlay");
+            //    if (Overlay.Showing) Overlay.Hide();
+            //    else Overlay.Show();
+            //}
 
             if (!Context.IsWorldReady)
                 return;
@@ -142,6 +159,22 @@ namespace StardewBot
             if (e.Button == SButton.H)
             {
                 toggleMenu();
+            }
+
+            if (e.Button == SButton.P)
+            {
+                Level.resetLevelClearedDebug();
+            }
+
+            if(e.Button == SButton.MouseRight)
+            {
+                if(Game1.player.ActiveObject != null && Game1.player.ActiveObject.Name == "Bot Phone" && Game1.activeClickableMenu is null)
+                {
+                    //logger.Log("Toggling Overlay");
+                    //if (Overlay.Showing) Overlay.Hide();
+                    //else Overlay.Show();
+                    toggleMenu();
+                }
             }
         }
 
@@ -156,6 +189,9 @@ namespace StardewBot
             // Note: Does not work curretly
             GameRunner.instance.Exiting += Instance_Exiting;
 
+            dga = helper.ModRegistry.GetApi<DGAAPI>("spacechase0.DynamicGameAssets");
+            if (dga is not null) dga.AddEmbeddedPack(ModManifest, Path.Combine(helper.DirectoryPath, "assets", "dga"));
+
             var bounds = Game1.game1.Window.ClientBounds;
             Dispatcher.ResizeBlockly(bounds.Width, bounds.Height);
 
@@ -164,7 +200,7 @@ namespace StardewBot
                 var config = Helper.ModContent.Load<Dictionary<string, string>>("assets/config.json");
                 string blocklyPath = config["blocklyPath"];
                 string browserPath = config["browserPath"];
-                // Logger.Log("Blockly path: " + blocklyPath);
+                // logger.Log("Blockly path: " + blocklyPath);
                 // TODO: Create smart default instead of crashing
 
                 Overlay.Initialize(blocklyPath, browserPath); 
@@ -216,8 +252,8 @@ namespace StardewBot
             // TODO: Remove
             Game1.options.musicVolumeLevel = 0;
 
-            var player = Game1.player;
-            player.addItemToInventory(new Bot("1234", null));
+            //var player = Game1.player;
+            //player.addItemToInventory(new Bot("1234", null));
 
             //Level.LoadLevel("loops-line");
             //Level.LoadLevel("CamLevel");
@@ -227,7 +263,7 @@ namespace StardewBot
             //farm.addCharacter(bot);
             //bot.currentLocation = farm;
             //bot.setTilePosition(farm.GetMainFarmHouseEntry() + new Point(1, 5));
-            ////Logger.Log(robin.currentLocation.Name);
+            ////logger.Log(robin.currentLocation.Name);
 
             //robot = new BotController(bot, "ROBOT1");
             //Dispatcher.SetTarget(robot);
@@ -244,11 +280,13 @@ namespace StardewBot
         {
             if (Game1.activeClickableMenu is Levels.TutorialMenu menu)
             {
+                
                 menu.exitThisMenu();
             } else
             {
                 Game1.activeClickableMenu = new Levels.TutorialMenu();
             }
+
         }
 
 
@@ -256,31 +294,50 @@ namespace StardewBot
 
         public void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            Logger.Log($"Menu opened: {e.NewMenu}");
+            logger.Log($"Menu opened: {e.NewMenu}");
             if (e.NewMenu is ShopMenu shop)
             {
                 if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
-                if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail"))
+                if (Game1.player.mailReceived.Contains("FirstBotLetter"))
                 {
+                    logger.Log("Adding item to Pierres Shop!");
                     // Add a bot to the store inventory.
                     // Let's insert it after Flooring but before Catalogue.
                     int index = 0;
                     for (; index < shop.forSale.Count; index++)
                     {
                         var item = shop.forSale[index];
-                        Logger.Log($"Shop item {index}: {item} with {item.Name}");
+                        logger.Log($"Shop item {index}: {item} with {item.Name}");
                         if (item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
                     }
-                    var botForSale = new Bot(null, null);
+                    var botForSale = new Bot(null, farmer: null);
                     shop.forSale.Insert(index, botForSale);
                     shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });  // sale price and available stock
                 }
             }
+
+            TVOverride.OverrideTVMenu(e);
         }
+
+       
 
         public void OnSaving(object sender, SavingEventArgs args)
         {
-            if (Context.IsMainPlayer) Bot.ConvertBotsToChests();
+            if (Context.IsMainPlayer)
+            {
+                Bot.ConvertBotsToChests();
+
+                LevelData levelSave = new LevelData();
+                foreach(var level in Level.levelsDict.Values)
+                {
+                    levelSave.LevelsCompleted[level.MapName] = level.isCompleted;
+                }
+
+
+                helper.Data.WriteSaveData<LevelData>("level-save", levelSave);
+            }
+
+            
         }
 
         public void OnSaved(object sender, SavedEventArgs args)
@@ -292,6 +349,48 @@ namespace StardewBot
         {
             if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
             Level.LoadAssets(Helper);
+
+            var levelSave = helper.Data.ReadSaveData<LevelData>("level-save");
+
+            if (levelSave != null)
+            {
+                foreach (var level in Level.levelsDict.Values)
+                {
+                    if (levelSave.LevelsCompleted[level.MapName])
+                    {
+                        level.isCompleted = true;
+                    }
+                }
+            }
+
+            var stg = dga.ListContentPacks();
+            var test = dga.GetItemsByPack("StardewBot");
+            StardewValley.Object phone;
+
+            if (Array.IndexOf<String>(stg, "StardewBot") > -1)
+            {
+                phone = (StardewValley.Object)dga.SpawnDGAItem(test[0]);
+
+                MailDao.SaveLetter(
+                   new Letter(
+                       "FirstBotLetter"
+                       , "Here is you first bot. Don't break it. ^~Some Body"
+                       , new List<Item> { new Bot("0001", farmer: null), phone }
+                       , (l) => !Game1.player.mailReceived.Contains(l.Id)
+                       , (l) => Game1.player.mailReceived.Add(l.Id)
+                   )
+               );
+            }
+        }
+
+        class LevelData
+        {
+            public Dictionary<String, bool> LevelsCompleted { get; set; }
+
+            public LevelData()
+            {
+                LevelsCompleted = new Dictionary<string, bool>();
+            }
         }
     }
 }
