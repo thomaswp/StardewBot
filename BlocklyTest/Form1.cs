@@ -78,7 +78,7 @@ namespace BlocklyTest
             timer2.Enabled = false;
         }
 
-        private void Dispatcher_OnSave(ProgramState obj)
+        private void Dispatcher_OnSave(String test1, String test2, ProgramState obj)
         {
             Properties.Settings.Default.Code = obj.ToJSON();
             Logger.Log(Properties.Settings.Default.Code);
@@ -181,6 +181,11 @@ namespace BlocklyTest
             //if (showing) browserOverlay.Show();
             //else browserOverlay.Hide();
             //showing = !showing;
+        }
+
+        public void FlagFinished()
+        {
+            throw new NotImplementedException();
         }
     }
 }

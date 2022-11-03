@@ -1,9 +1,12 @@
 ﻿using BlocklyBridge;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
+using StardewValley;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -31,17 +34,32 @@ namespace StardewBot
 
         public void LogSessionStart()
         {
-            Log("", "", justNewLine: true);
-            Log("Start Game Session", "Game.Start", header: true);
+            bool Exists = File.Exists(path);
+
+            if(Exists)
+            {
+                Log("", "", justNewLine: true);
+                Log("Start Game Session", "Game.Start");
+            } else
+            {
+                Log("Start Game Session", "Game.Start", header: true);
+            }   
         }
 
         public void Log(object message)
         {
-            Log(message, null, null);
+            Log(message, null);
         }
 
-        public void Log(object message, String action = null, String data = null, bool justNewLine = false, bool header = false)
+        public void Log(object message, String action = null, String code = null, bool justNewLine = false, bool header = false)
         {
+            monitor.Log($"{message}", LogLevel.Debug);
+
+            var methodInfo = new StackTrace().GetFrame(3).GetMethod();
+            if(methodInfo.Name.Equals("SaveCode"))
+            {
+                action = "IDE.CodeChanged";
+            }
 
             if (action is not null)
             {
@@ -50,13 +68,29 @@ namespace StardewBot
                     // Don't write the header again.
                     HasHeaderRecord = header,
                 };
+                String gametime = "";
+                String gamemoney = "";
+
+                if (Context.IsWorldReady)
+                {
+                    if (Game1.Date != null)
+                    {
+                        gametime = Game1.Date.ToString() + Game1.timeOfDay.ToString();
+                    }
+
+                    if (Game1.player != null)
+                    {
+                        gamemoney = Game1.player.Money.ToString();
+                    }
+                }
+
 
                 var date = justNewLine ? "" : DateTime.Now.ToString();
                 var records = new List<LogItem> {
-                    new LogItem {Date = date, Action = action, Message = $"{message}", Data = data ?? "" },
+                    new LogItem {Date = date, Action = action, Message = $"{message}", Code = code, InGameTime = gametime, InGameMoney = gamemoney },
                 };
                 
-                monitor.Log($"{message}", LogLevel.Debug);
+                
                 using (var sw = new StreamWriter(path, true))
                 using (CsvWriter csv = new CsvWriter(sw, config))
                 {
@@ -76,7 +110,9 @@ namespace StardewBot
         public String Date { get; set; }
         public String Action { get; set; }
         public String Message { get; set; }
-        public String Data { get; set; }
+        public String Code { get; set; }
+        public String InGameTime { get; set; }
+        public String InGameMoney { get; set; }
     }
 
 }

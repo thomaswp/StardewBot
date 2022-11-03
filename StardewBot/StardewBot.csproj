@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="29.0.0" />
+    <PackageReference Include="CsvHelper" Version="30.0.0" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.2" />
   </ItemGroup>
 

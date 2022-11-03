@@ -79,6 +79,7 @@ namespace StardewBot
             helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
             helper.Events.Display.Rendered += Display_Rendered;
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
+            helper.Events.GameLoop.DayEnding += GameLoop_DayEnding;
 
             // From Farmtronics
             helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
@@ -128,9 +129,6 @@ namespace StardewBot
 
             // TODO: What about resize..?
             Overlay = new BrowserProgrammingOverlay();
-
-            
-
         }
 
         private void Dispatcher_OnReceiveMinimize()
@@ -171,16 +169,19 @@ namespace StardewBot
                 if(Game1.player.ActiveObject != null && Game1.player.ActiveObject.Name == "Bot Phone" && Game1.activeClickableMenu is null)
                 {
                     //logger.Log("Toggling Overlay");
-                    //if (Overlay.Showing) Overlay.Hide();
-                    //else Overlay.Show();
-                    toggleMenu();
+                    if (Overlay.Showing) Overlay.Hide();
+                    else Overlay.Show();
+                    //toggleMenu();
                 }
             }
         }
 
-        private void Dispatcher_OnSave(ProgramState obj)
+        private void Dispatcher_OnSave(String target, String code, ProgramState obj)
         {
             State = obj;
+            var message = new JObject();
+            message.Add("Bot", target);
+            logger.Log(message.ToString(), action: "IDE.CodeChanged", code: code);
             helper.Data.WriteJsonFile(PROGRAMS_FILE, obj);
         }
 
@@ -270,6 +271,29 @@ namespace StardewBot
 
             // print button presses to the console window
             //Monitor.Log($"Spawned robot!!: {bot.position}", LogLevel.Debug);
+        }
+
+        private void GameLoop_DayEnding(object sender, DayEndingEventArgs e)
+        {
+            var eodcrops = Game1.player.displayedShippedItems.ToString() ?? Game1.getFarm().getShippingBin(Game1.player).ToString() ?? "No Crops Sold";
+            var jojamember = Game1.player.mailReceived.Contains("JojaMember") ? "Yes" : "No";
+            List<String> bundlesCompleted = new List<string>();
+
+            if (Game1.player.mailReceived.Contains("ccCraftsRoom")) bundlesCompleted.Add("ccCraftsRoom");
+            if (Game1.player.mailReceived.Contains("ccVault")) bundlesCompleted.Add("ccVault");
+            if (Game1.player.mailReceived.Contains("ccFishTank")) bundlesCompleted.Add("ccFishTank");
+            if (Game1.player.mailReceived.Contains("ccPantry")) bundlesCompleted.Add("ccPantry");
+            if (Game1.player.mailReceived.Contains("ccBulletin")) bundlesCompleted.Add("ccBulletin");
+            if (Game1.player.mailReceived.Contains("ccBoilerRoom")) bundlesCompleted.Add("ccBoilerRoom");
+            if (Game1.player.mailReceived.Contains("ccPantry")) bundlesCompleted.Add("ccPantry");
+            if (Game1.player.mailReceived.Contains("ccBulletin")) bundlesCompleted.Add("ccBulletin");
+            if (Game1.player.mailReceived.Contains("jojaCraftsRoom")) bundlesCompleted.Add("jojaCraftsRoom");
+            if (Game1.player.mailReceived.Contains("jojaVault")) bundlesCompleted.Add("jojaVault");
+            if (Game1.player.mailReceived.Contains("jojaFishTank")) bundlesCompleted.Add("jojaFishTank");
+            if (Game1.player.mailReceived.Contains("jojaBoilerRoom")) bundlesCompleted.Add("jojaBoilerRoom");
+            if (Game1.player.mailReceived.Contains("jojaPantry")) bundlesCompleted.Add("jojaPantry");
+
+            logger.Log($"Day Ended. Crops sold: {eodcrops}. Joja Member: {jojamember}. Bundles Complete: {bundlesCompleted}.", action: "Game.DayEnded");
         }
 
         /*********

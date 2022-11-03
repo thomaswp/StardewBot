@@ -40,6 +40,7 @@ namespace StardewBot.Overlays
         public void Hide()
         {
             overlay.Hide();
+            ModEntry.logger.Log("Closed IDE", action: "IDE.Closed");
             Showing = false;
         }
 
@@ -47,6 +48,7 @@ namespace StardewBot.Overlays
         {
             // TODO: Need to add a menu so stardew pauses...
             overlay.Show();
+            ModEntry.logger.Log("Open IDE", action: "IDE.Open");
             Showing = true;
         }
 

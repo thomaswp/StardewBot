@@ -41,12 +41,14 @@ namespace StardewBot
         [ScriptableEvent()]
         public void OnClick()
         {
+            ModEntry.logger.Log("On Click", "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
         [ScriptableEvent()]
         public void OnDayStarted()
         {
+            ModEntry.logger.Log("Day Start", "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
@@ -54,12 +56,14 @@ namespace StardewBot
         [ScriptableEvent()]
         public void EachSecond()
         {
+            
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
         [ScriptableEvent()]
         public void OnCodeTested()
         {
+            ModEntry.logger.Log("Test Button Clicked", "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
     }

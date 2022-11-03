@@ -664,6 +664,7 @@ namespace Farmtronics {
 				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer:false, 0, glider:false, farmer);
 				if (coll) {
 					//Debug.Log("Colliding position: " + newBounds);
+					ModEntry.logger.Log("", action:"");
 					return;
 				}
 			}
