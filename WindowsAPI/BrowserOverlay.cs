@@ -185,6 +185,10 @@ namespace WindowsAPI
 
         private void LaunchBrowser(string browserPath)
         {
+
+            Debug.WriteLine(Environment.GetEnvironmentVariable("ProgramFiles"));
+            Debug.WriteLine(Environment.GetEnvironmentVariable("ProgramFiles(x86)"));
+
             // TODO: Add firefox (with firefox -kiosk -private-window) after fixing websocket bug...
             List<string> browserPaths = new List<string>(new string[] {
                 browserPath,
@@ -203,6 +207,7 @@ namespace WindowsAPI
                     browserProcess.StartInfo.Arguments =  $"{target} --chrome --incognito --kiosk";
                     browserProcess.Start();
                     this.browserProcess = browserProcess;
+
                     break;
                 }
                 catch (Exception e)

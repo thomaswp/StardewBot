@@ -16,7 +16,7 @@ namespace StardewBot.Levels
 {
     public class LevelMultiActionLoops_2 : Level
     {
-        public override string MapName => "LevelMultiActionLoops_2";
+        public override string MapName => "Multi-Action Loops 2";
 
         public LevelMultiActionLoops_2()
         {

@@ -16,7 +16,7 @@ namespace StardewBot.Levels
 {
     public class LevelConditionals_4 : Level
     {
-        public override string MapName => "LevelConditionals_4";
+        public override string MapName => "Conditionals 4";
 
         public LevelConditionals_4()
         {

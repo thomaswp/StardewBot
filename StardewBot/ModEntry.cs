@@ -115,7 +115,7 @@ namespace StardewBot
                 if (Bot.instances.Count > 0)
                 {
                     Dispatcher.SetTarget(Bot.instances[0].Controller);
-                }
+                }   
             });
             Dispatcher.OnSave += Dispatcher_OnSave;
             Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;

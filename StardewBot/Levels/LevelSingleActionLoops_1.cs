@@ -17,7 +17,7 @@ namespace StardewBot.Levels
 {
     public class LevelSingleActionLoops_1 : Level
     {
-        public override string MapName => "LevelSingleActionLoops_1";
+        public override string MapName => "Single-Action Loops";
         
 
         public LevelSingleActionLoops_1()

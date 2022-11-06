@@ -598,7 +598,7 @@ namespace Farmtronics {
 			/*int aheadX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
 			int aheadY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
 			Vector2 tileLocation = new Vector2(aheadX/64, aheadY/64);*/
-			Vector2 tileLocation = new Vector2((int)position.X / 64, (int)position.Y / 64);
+			Vector2 tileLocation = FacingTile;
 			TerrainFeature feature = null;
 			if (!loc.terrainFeatures.TryGetValue(tileLocation, out feature)) return false;
 

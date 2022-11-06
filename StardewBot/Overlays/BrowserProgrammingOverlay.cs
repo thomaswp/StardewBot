@@ -27,6 +27,7 @@ namespace StardewBot.Overlays
             {
                 overlay.Initialize(blocklyPath, browserPath, p => p.ProcessName == "StardewModdingAPI");
             });
+
         }
         
         // TODO: Need a resize method here too to reload chrome if it's resized bigger...
