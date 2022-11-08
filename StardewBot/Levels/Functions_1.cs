@@ -18,7 +18,8 @@ namespace StardewBot.Levels
     public class Functions_1 : Level
     {
         public override string MapName => "Functions";
-        
+        public override string EntryMessage => "Example Message";
+
 
         public Functions_1()
         {
@@ -31,6 +32,7 @@ namespace StardewBot.Levels
             public override Conditions levelConditions { get; set; }
 
             public override string MapName => "Functions_1Example";
+            public override string EntryMessage => "In this example level, open the code editor and examine the code. Make the indicate change and run the code to move on.";
 
             public override void setUpConditions()
             {
@@ -51,6 +53,7 @@ namespace StardewBot.Levels
             public override Conditions levelConditions { get; set; }
 
             public override string MapName => "Functions_1Actual";
+            public override string EntryMessage => "In this level, your goal is to reach the grassy location";
 
             public override void setUpConditions()
             {

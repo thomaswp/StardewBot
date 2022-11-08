@@ -93,7 +93,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 154,0,0,0,154,0,0,0,0,0,154,154,0,154,0,154,0,154,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,176,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -114,7 +114,7 @@
   <properties>
    <property name="Anchor" value="T"/>
   </properties>
-  <object id="1" name="TileData" x="160" y="80" width="16" height="16">
+  <object id="1" name="TileData" x="160" y="96" width="16" height="16">
    <properties>
     <property name="BotStart" value="T"/>
     <property name="Facing" value="1"/>
@@ -126,7 +126,7 @@
     <property name="Entry" value="T"/>
    </properties>
   </object>
-  <object id="8" name="TileData" x="160" y="80" width="16" height="16">
+  <object id="8" name="TileData" x="160" y="96" width="16" height="16">
    <properties>
     <property name="BotGoal" value="T"/>
    </properties>

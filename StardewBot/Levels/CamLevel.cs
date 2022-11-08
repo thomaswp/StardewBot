@@ -18,6 +18,7 @@ namespace StardewBot.Levels
     public class CamLevel : Level
     {
         public override string MapName => "CamLevel";
+        public override string EntryMessage => "Example Message";
         
 
         public CamLevel()
@@ -31,6 +32,7 @@ namespace StardewBot.Levels
             public override Conditions levelConditions { get; set; }
 
             public override string MapName => "CamExample";
+            public override string EntryMessage => "Example Message";
 
             public override void setUpConditions()
             {
@@ -51,6 +53,7 @@ namespace StardewBot.Levels
             public override Conditions levelConditions { get; set; }
 
             public override string MapName => "CamActual";
+            public override string EntryMessage => "Example Message";
 
             public override void setUpConditions()
             {
