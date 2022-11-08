@@ -81,7 +81,7 @@ namespace Farmtronics {
 
 		public bool IsFacingClear => CurrentLocation.isCollidingPosition(
 			FacingPositionBoundingBox, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
-
+	
 		//public Vector2 TileLocation => farmer.getTileLocation();
 
 		[XmlIgnore]
@@ -242,6 +242,7 @@ namespace Farmtronics {
 				new Pickaxe(),
 				new MeleeWeapon(47),  // (scythe)
 	            new WateringCan(),
+				new Hoe(),
 				(Item)new StardewValley.Object(472, 20),
 				(Item)new StardewValley.Object(483, 20)
 			};
@@ -313,6 +314,8 @@ namespace Farmtronics {
 
 			instances.Clear();
 			//Debug.Log($"Total bots converted to chests: {count}");
+
+			
 		}
 
 		static Chest ConvertBotToChest(Bot bot) {

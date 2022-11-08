@@ -31,7 +31,7 @@ namespace StardewBot.Levels
         private const string FieldMapPath = MapPathRoot + "field.tmx";
         private const string OriginFieldMapPath = MapPathRoot + "originField.tmx";
 
-        //Level STate
+        //Level State
         protected Map levelMap;
         protected Point botStart;
         protected Point levelOffset;
@@ -173,6 +173,9 @@ namespace StardewBot.Levels
         {
             level.Setup();
             level.setUpConditions();
+
+            mapOverlayToggle();
+
             level.TeleportToStart();
             //level.plantCrops();
             ModEntry.ModHelper.Events.Player.Warped += level.onWarp;
@@ -424,8 +427,31 @@ namespace StardewBot.Levels
             } else
             {
                 CurrentLevel.isCompleted = true;
-                CurrentLevel = null;
-                Game1.warpFarmer("Farm", 64, 15, flip: false);
+                leaveLevel();
+            }
+        }
+
+        public static void levelExit()
+        {
+            cleanLevel();
+            leaveLevel();
+        }
+
+        public static void leaveLevel()
+        {
+            CurrentLevel = null;
+            mapOverlayToggle();
+            Game1.warpFarmer("Farm", 64, 15, flip: false);
+        }
+
+        private static void mapOverlayToggle()
+        {
+            if(Game1.onScreenMenus.Contains(ModEntry.options))
+            {
+                Game1.onScreenMenus.Remove(ModEntry.options);
+            } else
+            {
+                Game1.onScreenMenus.Add(ModEntry.options);
             }
         }
 
@@ -440,6 +466,11 @@ namespace StardewBot.Levels
             if (CurrentLevel == null) return;
             if (CurrentLevel.currentSublevel == null) return;
             if (CurrentLevel.currentSublevel.bot != botController.Bot) return;
+            resetLevel();   
+        }
+
+        public static void resetLevel()
+        {
             CurrentLevel.currentSublevel.ResetBot();
         }
 

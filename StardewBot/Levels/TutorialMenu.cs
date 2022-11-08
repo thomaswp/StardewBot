@@ -8,6 +8,7 @@ using StardewValley.Menus;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using StardewValley.BellsAndWhistles;
+using Newtonsoft.Json.Linq;
 
 namespace StardewBot.Levels
 {
@@ -45,10 +46,14 @@ namespace StardewBot.Levels
 
         private int buttonTotalHeight;
 
+        JObject message;
+
         public TutorialMenu()
         : base(Game1.uiViewport.Width / 2 - (800 + IClickableMenu.borderWidth * 2) / 2, Game1.uiViewport.Height / 2 - (600 + IClickableMenu.borderWidth * 2) / 2, 800 + IClickableMenu.borderWidth * 2, 600 + IClickableMenu.borderWidth * 2, showUpperRightCloseButton: true)
         {
-            ModEntry.logger.Log("You opened the menu", action: "TutorialMenu.Opened");
+            message = new JObject();
+            message.Add("Menu", "Tutorial Menu");
+            ModEntry.logger.Log(message.ToString(), action: "Menu.Opened");
             leftWidth = 230;
             clearTop = IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearTopBorder;
             buttonTotalHeight = 460;
@@ -283,7 +288,7 @@ namespace StardewBot.Levels
 
         protected override void cleanupBeforeExit()
         {
-            ModEntry.logger.Log("You closed the menu", action: "TutorialMenu.Closed");
+            ModEntry.logger.Log(message.ToString(), action: "Menu.Closed");
             Game1.currentSpeaker = null;
             base.cleanupBeforeExit();
         }
