@@ -9,5 +9,6 @@ namespace StardewBot.Levels
     public class Loops1 : Level
     {
         public override string MapName => "loops-line";
+        public override string EntryMessage => "Example Message";
     }
 }

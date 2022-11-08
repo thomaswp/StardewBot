@@ -9,5 +9,6 @@ namespace StardewBot.Levels
     public class Ifs3 : Level
     {
         public override string MapName => "ifs-3-types";
+        public override string EntryMessage => "Example Message";
     }
 }

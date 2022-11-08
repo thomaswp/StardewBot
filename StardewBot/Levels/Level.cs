@@ -22,6 +22,7 @@ namespace StardewBot.Levels
     public abstract class Level
     {
         public abstract string MapName { get; }
+        public abstract string EntryMessage { get; }
         public virtual string ID { get { return MapName; } }
 
         //File Strings
@@ -66,14 +67,15 @@ namespace StardewBot.Levels
             foreach (var level in new Level[]
             {
                 //This needs to be changed! The map name is set to the last level initilized
-                new Loops1(),
-                new CamLevel(),
-                new Ifs3(),
+                //new Loops1(),
+                //new CamLevel(),
+                //new Ifs3(),
+                new LevelConditional_1(),
                 new LevelSingleActionLoops_1(),
                 new LevelMultiActionLoops_1(),
                 new LevelMultiActionLoops_2(),
-                new Variables_1(),
-                new Functions_1()
+                //new Variables_1(),
+                //new Functions_1()
                 
             })
             {
@@ -343,11 +345,16 @@ namespace StardewBot.Levels
 
                 ResetBot();
                 //DelayedAction.functionAfterDelay(() => plantCrops(), 1000);
+
+                //Provide Entry Message for this Level
+                Game1.drawObjectDialogue(EntryMessage);
             };
             // Delayed action to be executed after a set time (here 0,1 seconds)
             // Teleporting without the delay may prove to be problematic
             DelayedAction.functionAfterDelay(TeleportFunction, 100);
+
             
+
         }
 
 
