@@ -29,7 +29,7 @@ namespace StardewBot.Levels
         {
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "LevelConditional_1Example";
+            public override string MapName => "LevelConditionals_1Example";
             public override string EntryMessage => "In this example level, open the code editor and examine the code. Make the indicate change and run the code to move on.";
 
             public override void setUpConditions()
@@ -49,7 +49,7 @@ namespace StardewBot.Levels
         {
             public override Conditions levelConditions { get; set; }
 
-            public override string MapName => "LevelConditional_1Actual";
+            public override string MapName => "LevelConditionals_1Actual";
             public override string EntryMessage => "In this level, your goal is to have the bot clear the resources and reach the grassy location";
 
             public override void setUpConditions()

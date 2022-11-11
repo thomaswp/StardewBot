@@ -65,19 +65,13 @@ namespace StardewBot
         [ScriptableMethod]
         public AsyncFunction<bool> IsForwardClear()
         {
-            return Result(Bot.IsFacingClear);
+            return Result(!Bot.IsFacingClear);
         }
 
         [ScriptableMethod]
         public AsyncFunction<bool> IsForwardWater()
         {
             return Result(Bot.IsFacingClear && Location.IsTileWater(Bot.FacingTile));
-        }
-
-        [ScriptableMethod]
-        public AsyncFunction<bool> IsForwardDiggable()
-        {
-            return Result(Bot.IsFacingClear && Location.DoesTileHaveProperty("Diggable", Bot.FacingTile));
         }
 
         [ScriptableMethod]
@@ -147,22 +141,6 @@ namespace StardewBot
         public AsyncFunction<bool> IsForwardCrop()
         {
             return Result(Bot.IsFacingClear && Location.IsTileACrop(Bot.FacingTile));
-        }
-
-        [ScriptableMethod]
-        public AsyncFunction<bool> IsBotOnTile()
-        {
-            StardewValley.Object something = null;
-            something = Bot.CurrentLocation.getObjectAtTile((int)Bot.TileLocation.X, (int)Bot.TileLocation.Y);
-            return Result( something != null && something is Bot);
-        }
-
-        [ScriptableMethod]
-        public AsyncFunction<bool> IsBotForwardTile()
-        {
-            StardewValley.Object something = null;
-            something = Bot.CurrentLocation.getObjectAtTile((int)Bot.FacingTile.X, (int)Bot.FacingTile.Y);
-            return Result(something != null && something is Bot);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace StardewBot.Levels
 
 
         public OptionsButtonMenu()
-        : base(20, 40, 300, 300, showUpperRightCloseButton: false)
+        : base(20, 20, 300, 300, showUpperRightCloseButton: false)
         {
             clearTop = IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearTopBorder;
 

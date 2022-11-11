@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace StardewBot
 {
-    public class StardewLogger : ILogger
+    public class StardewLogger
     {
         private IMonitor monitor;
         private String path;
@@ -35,14 +35,17 @@ namespace StardewBot
         public void LogSessionStart()
         {
             bool Exists = File.Exists(path);
+            var message = new JObject();
+            message.Add("Game Session", "Start");
 
-            if(Exists)
+            if (Exists)
             {
-                Log("", "", justNewLine: true);
-                Log("Start Game Session", "Game.Start");
+                Log(new JObject(), action: "", justNewLine: true);
+
+                Log(message, "Game.Start");
             } else
             {
-                Log("Start Game Session", "Game.Start", header: true);
+                Log(message, "Game.Start", header: true);
             }   
         }
 
@@ -63,6 +66,8 @@ namespace StardewBot
 
             if (action is not null)
             {
+                JObject JMessage = (JObject) message;
+
                 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
                     // Don't write the header again.
@@ -87,7 +92,7 @@ namespace StardewBot
 
                 var date = justNewLine ? "" : DateTime.Now.ToString();
                 var records = new List<LogItem> {
-                    new LogItem {Date = date, Action = action, Message = $"{message}", Code = code, InGameTime = gametime, InGameMoney = gamemoney },
+                    new LogItem {Date = date, Action = action, Message = $"{JMessage}", Code = code, InGameTime = gametime, InGameMoney = gamemoney },
                 };
                 
                 

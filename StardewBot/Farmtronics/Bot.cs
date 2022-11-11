@@ -746,44 +746,55 @@ namespace Farmtronics {
 				return;
 			}
 
-			// Otherwise, big pain in the neck time.
+            //tool.DoFunction(CurrentLocation, tileX, tileY, 1, farmer);
 
-			// Apply it to the location itself.
-			//Debug.Log($"{name} Performing {tool} action at {tileX},{tileY}");
-			location.performToolAction(tool, tileX, tileY);
+            // Otherwise, big pain in the neck time.
 
-			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
-			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 0, tile, location)) {
-				//Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
-				location.terrainFeatures.Remove(tile);
-			}
-			if (location.largeTerrainFeatures is not null) {
-				var tileRect = new Rectangle(tileX*64, tileY*64, 64, 64);
-				for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--) {
-					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 0, tile, location)) {
-						//Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
-						location.largeTerrainFeatures.RemoveAt(i);
-					}
-				}
-			}
+            // Apply it to the location itself.
+            //Debug.Log($"{name} Performing {tool} action at {tileX},{tileY}");
 
-			// Finally, apply to any object sitting on this tile.
-			if (location.Objects.ContainsKey(tile)) {
-				var obj = location.Objects[tile];
-				if (obj != null && obj.Type != null && obj.performToolAction(tool, location)) {
-					if (obj.Type.Equals("Crafting") && (int)obj.Fragility != 2) {
-						var center = farmer.GetBoundingBox().Center;
-						//Debug.Log($"Performed tool action on the object {obj}; adding debris");
-						location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
-							farmer.GetToolLocation(), new Vector2(center.X, center.Y)));
-					}
-					//Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
-					obj.performRemoveAction(tile, location);
-					location.Objects.Remove(tile);
-				}
-			}
 
-		}
+            location.performToolAction(tool, tileX, tileY);
+
+            // Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
+            if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 0, tile, location))
+            {
+                //Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
+                location.terrainFeatures.Remove(tile);
+            }
+            if (location.largeTerrainFeatures is not null)
+            {
+                var tileRect = new Rectangle(tileX * 64, tileY * 64, 64, 64);
+                for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--)
+                {
+                    if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 0, tile, location))
+                    {
+                        //Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
+                        location.largeTerrainFeatures.RemoveAt(i);
+                    }
+                }
+            }
+
+            // Finally, apply to any object sitting on this tile.
+            if (location.Objects.ContainsKey(tile))
+            {
+                var obj = location.Objects[tile];
+                if (obj != null && obj.Type != null && obj.performToolAction(tool, location))
+                {
+                    if (obj.Type.Equals("Crafting") && (int)obj.Fragility != 2)
+                    {
+                        var center = farmer.GetBoundingBox().Center;
+                        //Debug.Log($"Performed tool action on the object {obj}; adding debris");
+                        location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
+                            farmer.GetToolLocation(), new Vector2(center.X, center.Y)));
+                    }
+                    //Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
+                    obj.performRemoveAction(tile, location);
+                    location.Objects.Remove(tile);
+                }
+            }
+
+        }
 
 		public void Update(GameTime gameTime) {
 			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
@@ -843,8 +854,8 @@ namespace Farmtronics {
             //}
             foreach (var debris in CurrentLocation.debris)
 			{
-				AttractDebris(debris, gameTime, CurrentLocation);
-			}
+                AttractDebris(debris, gameTime, CurrentLocation);
+            }
             UnsetLocalPlayer();
         }
 
@@ -920,7 +931,8 @@ namespace Farmtronics {
 						if (Math.Abs(chunk.position.X + 32f - (float)player.getStandingX()) <= 64f && Math.Abs(chunk.position.Y + 32f - (float)player.getStandingY()) <= 64f)
 						{
 							Item old = debris.item;
-							if (player.addItemToInventory(debris.item) == null)
+							if (debris.collect(player, chunk))
+							//if (player.addItemToInventory(debris.item) == null)
 							//if (debris.collect(player, chunk))
 							{
 								if (Game1.debrisSoundInterval <= 0f)

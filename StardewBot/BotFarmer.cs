@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
+using Newtonsoft.Json.Linq;
 using StardewValley;
 using StardewValley.Objects;
 using System.Collections.Generic;
@@ -112,7 +113,10 @@ namespace StardewBot
 			foreach (Item item in Game1.player.Items)
             {
 				if (item == null) continue;
-				ModEntry.logger.Log($"adding {item.Name}");
+
+				var message = new JObject();
+				message.Add("Change", "adding {item.Name}");
+				ModEntry.logger.Log(message, action: "Bot.Created");
 				items.Add(item);
             }
 			CurrentToolIndex = 1;

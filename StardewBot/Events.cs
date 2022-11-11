@@ -1,5 +1,6 @@
 ﻿using BlocklyBridge;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
 using StardewValley;
 using System;
@@ -41,29 +42,38 @@ namespace StardewBot
         [ScriptableEvent()]
         public void OnClick()
         {
-            ModEntry.logger.Log("On Click", "IDE.Run");
+            var message = new JObject();
+            message.Add("Type", "Event");
+            message.Add("Event", "On Click");
+            ModEntry.logger.Log(message, "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
         [ScriptableEvent()]
         public void OnDayStarted()
         {
-            ModEntry.logger.Log("Day Start", "IDE.Run");
+            var message = new JObject();
+            message.Add("Type", "Event");
+            message.Add("Event", "Day Start");
+            ModEntry.logger.Log(message, "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
         // Currently disabled to minimize logging...
-        [ScriptableEvent()]
-        public void EachSecond()
-        {
+        //[ScriptableEvent()]
+        //public void EachSecond()
+        //{
             
-            BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
-        }
+        //    BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
+        //}
 
         [ScriptableEvent()]
         public void OnCodeTested()
         {
-            ModEntry.logger.Log("Test Button Clicked", "IDE.Run");
+            var message = new JObject();
+            message.Add("Type", "Event");
+            message.Add("Event", "Test Button");
+            ModEntry.logger.Log(message, "IDE.Run");
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
     }

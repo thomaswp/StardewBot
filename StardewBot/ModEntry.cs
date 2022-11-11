@@ -39,6 +39,7 @@ namespace StardewBot
             get;
             private set;
         }
+
         public static IModHelper ModHelper
         {
             get;
@@ -56,6 +57,8 @@ namespace StardewBot
         public const string PROGRAMS_FILE = "programs.json";
 
         public static StardewLogger logger;
+
+        public static OptionsButtonMenu options;
 
         DGAAPI dga;
 
@@ -91,8 +94,6 @@ namespace StardewBot
 
             helper.Events.Display.WindowResized += Display_WindowResized;
 
-            Logger.Implementation = new StardewLogger(Monitor);
-
             State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
 
 
@@ -117,6 +118,8 @@ namespace StardewBot
                     Dispatcher.SetTarget(Bot.instances[0].Controller);
                 }   
             });
+            Logger.OnLog += Logger_OnLog;
+            Logger.OnWarn += Logger_OnWarn;
             Dispatcher.OnSave += Dispatcher_OnSave;
             Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;
 
@@ -129,6 +132,8 @@ namespace StardewBot
 
             // TODO: What about resize..?
             Overlay = new BrowserProgrammingOverlay();
+
+            options = new OptionsButtonMenu();
         }
 
         private void Dispatcher_OnReceiveMinimize()
@@ -161,7 +166,8 @@ namespace StardewBot
 
             if (e.Button == SButton.P)
             {
-                Level.resetLevelClearedDebug();
+                Game1.activeClickableMenu = new OptionsButtonMenu();
+                //Level.resetLevelClearedDebug();
             }
 
             if(e.Button == SButton.MouseRight)
@@ -185,6 +191,19 @@ namespace StardewBot
             helper.Data.WriteJsonFile(PROGRAMS_FILE, obj);
         }
 
+        private void Logger_OnLog(String message, String code)
+        {
+            var jMessage = new JObject();
+            jMessage.Add("Type", message);
+            logger.Log(jMessage, code: code, action: "IDE.OnChanged");
+        }
+
+        private void Logger_OnWarn(String message)
+        {
+            logger.Warn(message);
+        }
+
+
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
         {
             // Note: Does not work curretly
@@ -200,7 +219,8 @@ namespace StardewBot
             {
                 var config = Helper.ModContent.Load<Dictionary<string, string>>("assets/config.json");
                 string blocklyPath = config["blocklyPath"];
-                string browserPath = config["browserPath"];
+                string browserPath = Path.Combine(helper.DirectoryPath, "assets", "Farmbot-Blockly", "step-execution.html"); 
+                browserPath = File.Exists(browserPath) ? browserPath : config["browserPath"];
                 // logger.Log("Blockly path: " + blocklyPath);
                 // TODO: Create smart default instead of crashing
 
@@ -210,6 +230,8 @@ namespace StardewBot
             {
                 throw new Exception("Please create assets/config.json and specify a 'blocklyPath'");
             }
+
+            //Game1.onScreenMenus.Add(new OptionsButtonMenu());
         }
 
         private void Instance_Exiting(object sender, EventArgs e)
@@ -319,26 +341,26 @@ namespace StardewBot
         public void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
             logger.Log($"Menu opened: {e.NewMenu}");
-            if (e.NewMenu is ShopMenu shop)
-            {
-                if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
-                if (Game1.player.mailReceived.Contains("FirstBotLetter"))
-                {
-                    logger.Log("Adding item to Pierres Shop!");
-                    // Add a bot to the store inventory.
-                    // Let's insert it after Flooring but before Catalogue.
-                    int index = 0;
-                    for (; index < shop.forSale.Count; index++)
-                    {
-                        var item = shop.forSale[index];
-                        logger.Log($"Shop item {index}: {item} with {item.Name}");
-                        if (item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
-                    }
-                    var botForSale = new Bot(null, farmer: null);
-                    shop.forSale.Insert(index, botForSale);
-                    shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });  // sale price and available stock
-                }
-            }
+            //if (e.NewMenu is ShopMenu shop)
+            //{
+            //    if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
+            //    if (Game1.player.mailReceived.Contains("FirstBotLetter"))
+            //    {
+            //        logger.Log("Adding item to Pierres Shop!");
+            //        // Add a bot to the store inventory.
+            //        // Let's insert it after Flooring but before Catalogue.
+            //        int index = 0;
+            //        for (; index < shop.forSale.Count; index++)
+            //        {
+            //            var item = shop.forSale[index];
+            //            logger.Log($"Shop item {index}: {item} with {item.Name}");
+            //            if (item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
+            //        }
+            //        var botForSale = new Bot(null, farmer: null);
+            //        shop.forSale.Insert(index, botForSale);
+            //        shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });  // sale price and available stock
+            //    }
+            //}
 
             TVOverride.OverrideTVMenu(e);
         }
@@ -380,7 +402,7 @@ namespace StardewBot
             {
                 foreach (var level in Level.levelsDict.Values)
                 {
-                    if (levelSave.LevelsCompleted[level.MapName])
+                    if (levelSave.LevelsCompleted.ContainsKey(level.MapName))
                     {
                         level.isCompleted = true;
                     }

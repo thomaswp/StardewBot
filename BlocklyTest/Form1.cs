@@ -43,7 +43,7 @@ namespace BlocklyTest
             Assembly assembly = Assembly.GetExecutingAssembly();
             Dispatcher.Start(assembly.GetTypes(), () =>
             {
-                Logger.Log("Connected!!!");
+                Logger.Log("Connected!!!", null);
                 try
                 {
                     Dispatcher.State = ProgramState.FromJSON(Properties.Settings.Default.Code);
@@ -81,7 +81,7 @@ namespace BlocklyTest
         private void Dispatcher_OnSave(String test1, String test2, ProgramState obj)
         {
             Properties.Settings.Default.Code = obj.ToJSON();
-            Logger.Log(Properties.Settings.Default.Code);
+            Logger.Log(Properties.Settings.Default.Code, null);
             Properties.Settings.Default.Save();
         }
 

@@ -33,37 +33,8 @@ namespace StardewBot
         [ScriptableMethod]
         public AsyncFunction<bool> IsTillable()
         {
-            return Result(Bot.CurrentLocation.DoesTileHaveProperty("Diggable", Bot.TileLocation));
+            return Result(Bot.CurrentLocation.DoesTileHaveProperty("Diggable", Bot.FacingTile));
            /* return Result(Location.isTileHoeDirt(Bot.FacingTile) && Bot.IsFacingClear);*/
-        }
-
-        [ScriptableMethod]
-        public AsyncMethod TillUnderneath()
-        {
-            for (int i = 0; i < Bot.inventory.Count; i++)
-            {
-                Tool tool = Bot.inventory[i] as Tool;
-                if (tool == null) continue;
-                if (tool.BaseName == "Hoe")
-                {
-                    
-                    Bot.CurrentToolIndex = i;
-
-                    return DoUntilFinished(() => {
-                        /*tool.beginUsing(Bot.CurrentLocation, (int)Bot.getPosition.X, (int)Bot.getPosition.Y, Bot.getFarmer);*/
-                        tool.DoFunction(Bot.CurrentLocation, (int)Bot.getPosition.X, (int)Bot.getPosition.Y, (int)((Game1.toolHold + 20f) / 600f) + 1, Bot.getFarmer);
-                        /*ModUtils.beginUsing(Bot.CurrentLocation, (int)Bot.getPosition.X - 64 * Bot.DxForDirection(Bot.getFarmer.FacingDirection), (int)Bot.getPosition.Y - 64 * Bot.DyForDirection(Bot.getFarmer.FacingDirection), Bot.getFarmer, tool);*/
-
-                        Bot.getFarmer.setTileLocation(Bot.TileLocation);
-                       /* Farmer.showToolSwipeEffect(Bot.getFarmer);
-
-                        // Count how many frames into the swipe effect we are.
-                        // We'll actually apply the tool effect later, in Update.
-                        Bot.toolUseFrame = 1;*/
-                    });
-                }
-            }
-            return null;
         }
 
         [ScriptableMethod]
@@ -121,7 +92,7 @@ namespace StardewBot
             if (seed >= 0)
             {
                 Bot.CurrentToolIndex = seed;
-                return DoInstantly(() => Bot.PlaceItem((int)Bot.getPosition.X, (int)Bot.getPosition.Y));
+                return DoInstantly(() => Bot.PlaceItem((int)Bot.FacingTile.X * 64, (int)Bot.FacingTile.Y * 64));
             }
 
             return null;
@@ -160,7 +131,7 @@ namespace StardewBot
         }
 
         [ScriptableMethod]
-        public AsyncFunction<int> InventoryItems()
+        public AsyncFunction<int> NumberOfInventoryItems()
         {
             return Result(Bot.inventory.Count);
         }
