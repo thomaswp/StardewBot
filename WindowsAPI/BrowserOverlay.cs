@@ -204,7 +204,7 @@ namespace WindowsAPI
                     string target = blocklyPath;
                     var browserProcess = new Process();
                     browserProcess.StartInfo.FileName = path;
-                    browserProcess.StartInfo.Arguments =  $"{target} --chrome --incognito --kiosk";
+                    browserProcess.StartInfo.Arguments =  $"\"{target}\" --chrome --incognito --kiosk";
                     browserProcess.Start();
                     this.browserProcess = browserProcess;
 
