@@ -41,6 +41,10 @@ class Thread {
     }
 
     die() {
+		let thread = this;
+		Thread.FinishedAll({
+			targetID: thread.target.id,
+		});
         this.target.removeThread(this.id);
     }
 
@@ -106,6 +110,13 @@ class Thread {
             'type': 'call',
             'data': data,
         }));
-
+    }
+	
+	static FinishedAll(data) {
+        console.log('Finished All!', data);
+        window.socket.send(JSON.stringify({
+            'type': 'FinishedAll',
+            'data': data,
+        }));
     }
 }

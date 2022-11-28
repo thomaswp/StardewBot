@@ -6,29 +6,198 @@
   <script src="acorn.js"></script>
   <script src="acorn_interpreter.js"></script>
   <!-- <script src="./node_modules/acorn/dist/acorn.js"></script> -->
-  <script src="./node_modules/blockly/blockly_compressed.js"></script>
-  <script src="./node_modules/blockly/msg/en.js"></script>
+  <script src="blockly_compressed.js"></script>
+  <script src="en.js"></script>
   <style>
+	@font-face {
+		font-family: StardewFont;
+		src: url(font/Stardew_Valley.ttf);
+	}
+  
     html {
       height: 100%;
     }
     body {
-      background-color: #fff;
+      background-color: #ffd284;
       font-family: sans-serif;
       height: 100%;
       margin: 0;
+	  font-family: StardewFont !important;
     }
+	
+	body * { 
+		font-family: StardewFont;
+		color: #571007;
+		font-size: 20px;
+	}
+	
     h1 {
       font-weight: normal;
       font-size: 140%;
     }
+	
+	#container {
+		width: 100%;
+		height: 100%;
+	}
+	
     #test-button {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 8em;
-      font-size: large;
+		position: fixed;
+		z-index: 30;
+		top: 25px;
+		right: 20px;
+		width: 6em;
+		height: 80px;
+		border: none;
+	    font-size: 28px;
+		background: url(images/ButtonBackground.png);
+		background-size: cover;
+		transition: all .2s;
     }
+	
+	#test-button:hover {
+		background-color: rgba(173,100,0,0.3);
+		background-blend-mode: multiply;
+		transform: scale(1.02);
+	}
+	
+	#test-button:active {
+		background-color: rgba(173,100,0,0.1);
+		background-blend-mode: multiply;
+		transition: unset;
+	}
+	
+	svg.blocklySvg {
+		background-color: #ffd284;
+		box-sizing: border-box;
+	}
+	
+	.blocklyToolboxDiv.blocklyNonSelectable {
+		background-color: #ffd284;
+		padding: 30px;
+		box-sizing: border-box;
+	}
+	
+	svg.blocklyFlyout {
+		transform: translate(155px, 0px) !important;
+		border-width: 0px 0px 2px;
+		padding: 20px;
+	}
+	
+	path.blocklyFlyoutBackground {
+		fill: #ffd284;
+	}
+	
+	.blocklyTreeSeparator {
+		border-bottom: solid #b75405 1px;
+	}
+	
+	.blocklyScrollbarHandle {
+		fill: #b75405;
+	}
+	
+	#explanation {
+		position: fixed;
+		display: none;
+		bottom: 0;
+		left: 155px;
+		right: 100px;
+		background: white;
+		z-index: 100;
+		font-size: 28px;
+	}
+	
+	#explanation * {
+		font-size: 26px;
+	}
+
+
+	
+	div#explanationHeader, 
+	div#explanationPanel {
+		background: #ffd284;
+		padding: 25px;
+	}
+	
+	div#headerWrapper {
+		display: block;
+		position: relative;
+		padding-right: 45px;
+	}
+	
+	div#headerWrapper:after {
+		content: '';
+		position: absolute;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		width: 45px;
+		height: 25px;
+		background: url(images/DownArrow.png);
+		transform: scale(.5);
+		transition: transform .2s;
+	}
+	
+	div#headerWrapper.flipArrow:after {
+		transform: scale(.5) rotate(-180deg);
+	}
+	
+	#explanationPanel {
+		display: none;
+		margin-top: -20px;
+	}
+	
+	.display {
+		display: block !important;
+	}
+	
+	.blocklyDropDownDiv.geras-renderer.classic-theme * {
+		font-size: 18px;
+	}
+	
+	div#explanationHeader, 
+	div#explanationPanel, 
+	svg.blocklyFlyout, 
+	.blocklyToolboxDiv.blocklyNonSelectable, 
+	svg.blocklySvg
+	
+	{
+		border-image: url(images/BorderBox.png);
+		border-image-slice: 44;
+		border-image-width: 28px;
+		border-style: solid;
+	}
+	
+	#panelButtons {
+		height: 50px;
+	}
+	
+	.explanationButtons {
+		width: 48px;
+		height: 44px;
+		background: url(images/stardewArrows.png);
+		background-size: cover;
+		display: none;
+		transition: transform .05s;
+	}
+	
+	.explanationButtons:hover {
+		transform: scale(1.05);
+	}
+	
+	.explanationButtons:active {
+		transform: scale(1);
+		transition: unset;
+	}
+	
+	#explanationLeft {
+		float: left;
+	}
+	
+	#explanationRight {
+		background-position-x: 48px;
+		float: right;
+	}
   </style>
 </head>
 <body>
@@ -339,6 +508,7 @@
     <sep></sep>
     <category id="catVariables" colour="330" custom="VARIABLE" name="Variables"></category>
     <category id="catFunctions" colour="290" custom="PROCEDURE" name="Functions"></category>
+	<sep></sep>
   </xml>
 
   <xml xmlns="https://developers.google.com/blockly/xml" id="startBlocks" style="display: none">
@@ -350,9 +520,23 @@
     </block> -->
 
   </xml>
+  
+  <div id="explanation">
+	<div id="explanationHeader">
+		<div id="headerWrapper"></div>
+	</div>
+	<div id="explanationPanel">
+		<div id="panelWrapper"></div>
+		<div id="panelButtons">
+			<div id="explanationLeft" class="explanationButtons"></div>
+			<div id="explanationRight" class="explanationButtons"></div>
+		</div>
+	</div>
+  </div>
 
-  <script src="./node_modules/blockly/blocks_compressed.js"></script>
-  <script src="./node_modules/blockly/javascript_compressed.js"></script>
+  <script src="./blocks_compressed.js"></script>
+  <script src="./javascript_compressed.js"></script>
+  <!-- <script src="./blockly.min"></script> -->
   <script src="./websocket.js"></script>
   <script src="./target.js"></script>
   <script src="./thread.js"></script>
@@ -369,7 +553,7 @@
       }));
     }
 
-    document.onkeydown = function(e) {
+      document.onkeydown = function(e) {
       if (!window.socket) return;
       console.log(document.activeElement);
       if (e.code === 'KeyX') {
@@ -379,6 +563,36 @@
         }));
       }
     }
+	
+	document.getElementById("explanationHeader").onclick = function(e) {
+		if(explanation.length > 0) {
+			document.getElementById("explanationPanel").classList.toggle("display");
+			document.getElementById("headerWrapper").classList.toggle("flipArrow");
+		}
+	}
+	
+	document.getElementById("explanationLeft").onclick = function(e) {
+		document.getElementById("explanationRight").classList.add("display");
+		explanationPage--;
+		document.getElementById("panelWrapper").innerHTML = explanation[explanationPage];
+		
+		if(explanationPage == 0) {
+			document.getElementById("explanationLeft").classList.remove("display");
+		}
+	}
+	
+	document.getElementById("explanationRight").onclick = function(e) {
+		document.getElementById("explanationLeft").classList.add("display");
+		explanationPage++;
+		document.getElementById("panelWrapper").innerHTML = explanation[explanationPage];
+	
+		if(explanationPage == explanation.length - 1) {
+			document.getElementById("explanationRight").classList.remove("display");
+		}
+	}
+	
+	<!-- document.getElementsByClassName("blocklyTrash")[0].setAttribute("transform", "translate(1242,720)"); -->
+	<!-- document.getElementById("explanationHeader").addEventListener('click', explanationClick, false); -->
   </script>
 </body>
 </html>

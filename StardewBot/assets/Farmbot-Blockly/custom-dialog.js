@@ -117,12 +117,14 @@
        .appendChild(document.createTextNode(message));
  
    var onOkay = function(event) {
-     CustomDialog.hide();
+     dialogDiv.style.display = 'none';
+	backdropDiv.style.display = 'none';
      options.onOkay && options.onOkay();
      event && event.stopPropagation();
    };
    var onCancel = function(event) {
-     CustomDialog.hide();
+     dialogDiv.style.display = 'none';
+	backdropDiv.style.display = 'none';
      options.onCancel && options.onCancel();
      event && event.stopPropagation();
    };

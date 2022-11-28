@@ -1,5 +1,7 @@
 var Commands = {};
 var Interpreters = {};
+var explanation = {};
+var explanationPage = 0;
 
 function createWebsocket() {
     var socket = new WebSocket("ws://127.0.0.1:8000");
@@ -46,6 +48,14 @@ window.onbeforeunload = function() {
     window.socket.send("Disconnect");
 }
 
+function saveTutorial() {
+	if(!window.socket) return;
+	window.socket.send(JSON.stringify({
+		type: 'saveTutorial',
+		data: null
+	}));
+}
+
 Commands['SetTarget'] = (data) => {
     if (Target.currentEditing) {
         Target.currentEditing.unsetAsEditing();
@@ -81,12 +91,41 @@ Commands['DefineBlocks'] = (data) => {
 Commands['Resize'] = (data) => {
     const container = document.getElementById("container");
     if (!container) return;
-    container.style.width = data.width + "px";
-    container.style.height = data.height + "px";
+    // container.style.width = data.width + "px";
+    // container.style.height = data.height + "px";
     Blockly.svgResize(window.mainWorkspace);
 
     // TODO: No constant...
     const testButton = document.getElementById("test-button");
-    testButton.style.left = (data.width - 165) + "px";
-    testButton.style.right = "";
+    // testButton.style.left = (data.width - 165) + "px";
+    // testButton.style.right = "";
+};
+
+Commands['LoadTutorial'] = (data) => {
+	explanationPage = 0;
+	var entry = data.explanation[explanationPage];
+    explanation = data.explanation;
+	
+	console.log(explanation);
+	if(entry) {
+		document.getElementById("panelWrapper").innerHTML = entry;
+	} else {
+		document.getElementById("panelWrapper").innerHTML = "No Explanation Text Provided.";
+	}
+	
+	document.getElementById("headerWrapper").innerHTML = "Level Explanation (" + data.levelName + ")";
+	
+	if(explanation.length > 1) {
+		document.getElementById("explanationRight").classList.add("display");
+	}
+	
+	document.getElementById("explanation").classList.add("display");
+};
+
+Commands['EndTutorial'] = (data) => {
+	document.getElementById("explanation").classList.remove("display");
+	document.getElementById("panelWrapper").innerHTML = "";
+	document.getElementById("headerWrapper").innerHTML= "Level Explanation (";
+	document.getElementById("explanationLeft").classList.remove("display");
+	document.getElementById("explanationRight").classList.remove("display");
 };
