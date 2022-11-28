@@ -1,6 +1,7 @@
 ﻿using BlocklyBridge;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using StardewBot.Levels;
 using StardewModdingAPI;
 using StardewValley;
 using System;
@@ -46,6 +47,9 @@ namespace StardewBot
             message.Add("Type", "Event");
             message.Add("Event", "On Click");
             ModEntry.logger.Log(message, "IDE.Run");
+
+            if (Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
+
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
@@ -56,6 +60,9 @@ namespace StardewBot
             message.Add("Type", "Event");
             message.Add("Event", "Day Start");
             ModEntry.logger.Log(message, "IDE.Run");
+
+            if (Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
+
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 

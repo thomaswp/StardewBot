@@ -15,7 +15,7 @@ public class RealFileDisk : Disk {
 		//Debug.Log("Set base path to: " + this.basePath);
 		if (!Directory.Exists(this.basePath)) {
 			var dirInfo = Directory.CreateDirectory(this.basePath);
-			Logger.Log($"Created directory {this.basePath} with result {dirInfo.Exists}");
+			Logger.Log($"Created directory {this.basePath} with result {dirInfo.Exists}", null);
 		}
 	}
 	
@@ -28,7 +28,7 @@ public class RealFileDisk : Disk {
 		//Debug.Log("Expanding " + path);
 		path = Path.GetFullPath(path);
 		if (!path.StartsWith(basePath)) {
-			Logger.Log("Error: expected " + path + " to start with " + basePath);
+			Logger.Log("Error: expected " + path + " to start with " + basePath, null);
 			throw new System.ArgumentException();
 		}
 		return path;

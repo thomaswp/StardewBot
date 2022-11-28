@@ -53,7 +53,7 @@ namespace StardewBot.Levels
         {
             message = new JObject();
             message.Add("Menu", "Tutorial Menu");
-            ModEntry.logger.Log(message.ToString(), action: "Menu.Opened");
+            ModEntry.logger.Log(message, action: "Menu.Opened");
             leftWidth = 230;
             clearTop = IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearTopBorder;
             buttonTotalHeight = 460;
@@ -288,7 +288,7 @@ namespace StardewBot.Levels
 
         protected override void cleanupBeforeExit()
         {
-            ModEntry.logger.Log(message.ToString(), action: "Menu.Closed");
+            ModEntry.logger.Log(message, action: "Menu.Closed");
             Game1.currentSpeaker = null;
             base.cleanupBeforeExit();
         }

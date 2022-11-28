@@ -3,6 +3,7 @@ using Farmtronics;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.TerrainFeatures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,10 +66,11 @@ namespace StardewBot.Levels
         public enum conditionType
         {
             ReachedLocation, 
-            HarvestedCrops,
+            CropChanged,
             ItemsPlaced,
             TilesTiled,
-            InventorySpace
+            InventorySpace,
+            ResourceBroken
         }
 
         /**
@@ -86,7 +88,8 @@ namespace StardewBot.Levels
             singleConditionHandler = singleConditionMet;
             singleConditionHandler += checkAllConditions;
             FinishedActionHandler = FinishedAction;
-            
+            FinishedActionHandler += CheckConditionsList;
+
         }
 
         /**
@@ -105,6 +108,22 @@ namespace StardewBot.Levels
             }
         }
 
+        public void AddResourceCondition()
+        {
+            resourceBrokenCondition holder = null;
+
+            holder = new resourceBrokenCondition(conditionType.ResourceBroken);
+            conditionss.Add(holder);
+        }
+
+        public void AddCropCondition()
+        {
+            cropChangedCondition holder = null;
+
+            holder = new cropChangedCondition(conditionType.CropChanged);
+            conditionss.Add(holder);
+        }
+
         /**
          * <summary>
          * Adds a inventory space condition based on a single location.  
@@ -113,11 +132,6 @@ namespace StardewBot.Levels
         public void AddInventorySpaceCondition(GameLocation location)
         {
             inventorySpaceCondition holder = null;
-
-            if (!isConditionInEvent("CheckInventorySpace"))
-            {
-                FinishedActionHandler += CheckInventorySpace;
-            }
 
             holder = new inventorySpaceCondition(conditionType.InventorySpace, location);
             conditionss.Add(holder);
@@ -132,11 +146,6 @@ namespace StardewBot.Levels
         public void AddLocationCondition(Point? newLocation)
         {
             locationCondition holder = null;
-
-            if(!isConditionInEvent("checkLocation"))
-            {
-                FinishedActionHandler += checkLocation;
-            }
 
             if (newLocation != null)
             {
@@ -153,64 +162,36 @@ namespace StardewBot.Levels
          * <param name="sender"> The object that made the call. </param>
          * <param name="e"> Arguments passed when the event is called. </param>
          */
-        private void CheckInventorySpace(object sender, EventArgs e)
+        private void CheckConditionsList(object sender, EventArgs e)
         {
-            foreach (var condition in conditionss)
+            foreach( var condition in conditionss)
             {
-                if (condition.type.Equals(conditionType.InventorySpace))
+                condition.bot = (Bot)sender;
+                if (!condition.isMet)
                 {
-                    inventorySpaceCondition con = (inventorySpaceCondition)condition;
-                    Bot bot = (Bot)sender;
-                    con.bot = bot;
-                    if (con.isMet)
-                    {
-                        singleConditionHandler.Invoke(sender, e);
-                    }
+                    return;
                 }
             }
 
-        }
-
-        /**
-         * <summary>
-         * Checks to see if the location condition is being used. If so, it checks to see if the bots location
-         * is the same as one of the goal locations. If so, then the program checks if all other conditions are met.
-         * </summary>
-         * <param name="sender"> The object that made the call. </param>
-         * <param name="e"> Arguments passed when the event is called. </param>
-         */
-        private void checkLocation(object sender, EventArgs e)
-        {
-            foreach(var condition in conditionss)
-            {
-                if(condition.type.Equals(conditionType.ReachedLocation)) {
-                    locationCondition con = (locationCondition)condition;
-                    Bot bot = (Bot)sender;
-                    con.bot = bot;
-                    if(con.isMet)
-                    {
-                        singleConditionHandler.Invoke(sender, e);
-                    }
-                }
-            }
+            Level.levelCleared();
 
         }
 
-        private bool isConditionInEvent(String name)
-        {
-            if (FinishedActionHandler != null && FinishedActionHandler.GetInvocationList().Any())
-            {
-                foreach (var methodDelegate in FinishedActionHandler.GetInvocationList())
-                {
-                    if (methodDelegate.Method.Name.Equals(name))
-                    {
-                        return true;
-                    }
-                }
-            }
+        //private bool isConditionInEvent(String name)
+        //{
+        //    if (FinishedActionHandler != null && FinishedActionHandler.GetInvocationList().Any())
+        //    {
+        //        foreach (var methodDelegate in FinishedActionHandler.GetInvocationList())
+        //        {
+        //            if (methodDelegate.Method.Name.Equals(name))
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /**
          * <summary>
@@ -230,6 +211,76 @@ namespace StardewBot.Levels
             public ConditionInformation (conditionType type)
             {
                 this.type = type;
+            }
+        }
+
+        /**
+         * <summary>
+         * Specific condition for location based goals. 
+         * </summary>
+         */
+        private class resourceBrokenCondition : ConditionInformation
+        {
+            public override bool isMet
+            {
+                get
+                {
+                    foreach(var obj in Level.CurrentLevel.currentSublevel.objectLocations.Keys)
+                    {
+                        bot.CurrentLocation.objects.TryGetValue(obj, out var OutObj);
+                        if (OutObj != null) return false;
+                    }
+                    return true;
+                }
+            }
+
+
+            /**
+             * <param name="type"> The type of which the condition is. </param>
+             */
+            public resourceBrokenCondition(conditionType type) : base(type)
+            {
+            }
+
+
+        }
+
+        private class cropChangedCondition : ConditionInformation
+        {
+            public override bool isMet
+            {
+                get
+                {
+                    foreach(var crop in Level.CurrentLevel.currentSublevel.cropsLocations)
+                    {
+                        HoeDirt hd;
+                        if (bot.CurrentLocation.isTileHoeDirt(crop.Value))
+                        {
+                           hd = (HoeDirt)bot.CurrentLocation.GetTerrainFeature(crop.Value);
+                        } else
+                        {
+                            return false;
+                        }
+
+                        switch (crop.Key)
+                        {
+                            case "Water":
+                                if (hd.state.Value == 0) return false;
+                                break;
+                            default:
+                                if (hd.crop != null) return false;
+                                break;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            protected Vector2 crop { get; private set; }
+
+            public cropChangedCondition(conditionType type) : base(type)
+            {
             }
         }
 

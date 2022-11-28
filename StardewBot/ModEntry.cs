@@ -94,12 +94,14 @@ namespace StardewBot
 
             helper.Events.Display.WindowResized += Display_WindowResized;
 
-            State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
+            State = helper.Data.ReadGlobalData<ProgramState>("programs") ?? new ProgramState();
+            //State = helper.Data.ReadJsonFile<ProgramState>(PROGRAMS_FILE) ?? new ProgramState();
 
 
             //var test = new JObject();
             //test.Add("Test", "testValue");
             //helper.Data.WriteJsonFile<JObject>("Levels/xml/test.json", test);
+            //helper.ConsoleCommands.Add("SpawnBot", "Spawns a new Robot to use.", SpawnBotDebug);
 
             Dispatcher = new Dispatcher("127.0.0.1", 8000, action => queuedActions.Enqueue(action));
 
@@ -116,12 +118,14 @@ namespace StardewBot
                 if (Bot.instances.Count > 0)
                 {
                     Dispatcher.SetTarget(Bot.instances[0].Controller);
-                }   
+                }
+                Level.IDEReload();
             });
             Logger.OnLog += Logger_OnLog;
             Logger.OnWarn += Logger_OnWarn;
             Dispatcher.OnSave += Dispatcher_OnSave;
             Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;
+            Dispatcher.OnSaveTutorial += Dispatcher_OnSaveTutorial;
 
             //var bounds = Game1.graphics.GraphicsDevice.Viewport.Bounds;
             //// GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
@@ -136,6 +140,20 @@ namespace StardewBot
             options = new OptionsButtonMenu();
         }
 
+        int i = 2;
+
+        private void SpawnBotDebug(string arg1, string[] arg2)
+        {
+            Game1.player.addItemToInventory(new Bot(i.ToString(), farmer: null));
+            i++;
+        }
+
+        public static void Dispatcher_OnSaveTutorial()
+        {
+            if (Level.CurrentLevel == null || Level.CurrentLevel.currentSublevel == null) return;
+            Level.CurrentLevel.currentSublevel.saveBotXML();
+        }
+
         private void Dispatcher_OnReceiveMinimize()
         {
             Overlay.Hide();
@@ -145,6 +163,9 @@ namespace StardewBot
         {
             logger.Log("Resizing to: " + e.NewSize);
             Dispatcher.ResizeBlockly(e.NewSize.X, e.NewSize.Y);
+
+            var bounds = Game1.game1.Window.ClientBounds;
+            //Dispatcher.ResizeBlockly(e.NewSize.X, e.NewSize.Y, bounds.X, bounds.Y);
         }
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
@@ -161,7 +182,7 @@ namespace StardewBot
 
             if (e.Button == SButton.H)
             {
-                toggleMenu();
+                //toggleMenu();
             }
 
             if (e.Button == SButton.P)
@@ -175,9 +196,9 @@ namespace StardewBot
                 if(Game1.player.ActiveObject != null && Game1.player.ActiveObject.Name == "Bot Phone" && Game1.activeClickableMenu is null)
                 {
                     //logger.Log("Toggling Overlay");
-                    if (Overlay.Showing) Overlay.Hide();
-                    else Overlay.Show();
-                    //toggleMenu();
+                    //if (Overlay.Showing) Overlay.Hide();
+                    //else Overlay.Show();
+                    toggleMenu( new BotPhoneMenu() );
                 }
             }
         }
@@ -188,7 +209,8 @@ namespace StardewBot
             var message = new JObject();
             message.Add("Bot", target);
             logger.Log(message.ToString(), action: "IDE.CodeChanged", code: code);
-            helper.Data.WriteJsonFile(PROGRAMS_FILE, obj);
+            helper.Data.WriteGlobalData("programs", obj);
+            //helper.Data.WriteJsonFile(PROGRAMS_FILE, obj);
         }
 
         private void Logger_OnLog(String message, String code)
@@ -218,9 +240,16 @@ namespace StardewBot
             try
             {
                 var config = Helper.ModContent.Load<Dictionary<string, string>>("assets/config.json");
-                string blocklyPath = config["blocklyPath"];
-                string browserPath = Path.Combine(helper.DirectoryPath, "assets", "Farmbot-Blockly", "step-execution.html"); 
-                browserPath = File.Exists(browserPath) ? browserPath : config["browserPath"];
+                string blocklyPath = Path.Combine(helper.DirectoryPath, "assets", "Farmbot-Blockly", "step-execution.html");
+                string browserPath = config["browserPath"];
+
+                logger.Log("Directory Info: ");
+                logger.Log(helper.DirectoryPath);
+                logger.Log(blocklyPath);
+                logger.Log(config["blocklyPath"]);
+                logger.Log(File.Exists(blocklyPath));
+
+                blocklyPath = File.Exists(blocklyPath) ? blocklyPath : config["blocklyPath"];
                 // logger.Log("Blockly path: " + blocklyPath);
                 // TODO: Create smart default instead of crashing
 
@@ -297,7 +326,16 @@ namespace StardewBot
 
         private void GameLoop_DayEnding(object sender, DayEndingEventArgs e)
         {
-            var eodcrops = Game1.player.displayedShippedItems.ToString() ?? Game1.getFarm().getShippingBin(Game1.player).ToString() ?? "No Crops Sold";
+            var eodcrops = Game1.player.displayedShippedItems.Count == 0 ? Game1.getFarm().getShippingBin(Game1.player) : Game1.player.displayedShippedItems;
+            String crops = "";
+            if (eodcrops != null)
+            {
+                foreach (var crop in eodcrops)
+                {
+                    crops += crop.DisplayName + ", ";
+                }
+            }
+
             var jojamember = Game1.player.mailReceived.Contains("JojaMember") ? "Yes" : "No";
             List<String> bundlesCompleted = new List<string>();
 
@@ -315,22 +353,28 @@ namespace StardewBot
             if (Game1.player.mailReceived.Contains("jojaBoilerRoom")) bundlesCompleted.Add("jojaBoilerRoom");
             if (Game1.player.mailReceived.Contains("jojaPantry")) bundlesCompleted.Add("jojaPantry");
 
-            logger.Log($"Day Ended. Crops sold: {eodcrops}. Joja Member: {jojamember}. Bundles Complete: {bundlesCompleted}.", action: "Game.DayEnded");
+            var message = new JObject();
+            message.Add("Day", "Ended");
+            message.Add("Crops sold", crops);
+            message.Add("Joja Member", jojamember);
+            message.Add("Bundles Complete", String.Join(", ", bundlesCompleted));
+
+
+            logger.Log(message, action: "Game.DayEnded");
         }
 
         /*********
         ** Private methods
         *********/
 
-        private void toggleMenu()
+        private void toggleMenu(IClickableMenu menu)
         {
-            if (Game1.activeClickableMenu is Levels.TutorialMenu menu)
+            if (Game1.activeClickableMenu != null && Game1.activeClickableMenu.GetType() == menu.GetType())
             {
-                
                 menu.exitThisMenu();
-            } else
+            } else if(Game1.activeClickableMenu == null)
             {
-                Game1.activeClickableMenu = new Levels.TutorialMenu();
+                Game1.activeClickableMenu = menu;
             }
 
         }
@@ -361,8 +405,7 @@ namespace StardewBot
             //        shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });  // sale price and available stock
             //    }
             //}
-
-            TVOverride.OverrideTVMenu(e);
+            if (Game1.player.mailReceived.Contains("FirstBotLetter")) TVOverride.OverrideTVMenu(e);
         }
 
        
@@ -377,6 +420,7 @@ namespace StardewBot
                 foreach(var level in Level.levelsDict.Values)
                 {
                     levelSave.LevelsCompleted[level.MapName] = level.isCompleted;
+                    levelSave.LevelsOpened[level.MapName] = level.timesOpened;
                 }
 
 
@@ -406,6 +450,10 @@ namespace StardewBot
                     {
                         level.isCompleted = true;
                     }
+                    if(levelSave.LevelsOpened.TryGetValue(level.MapName, out int times))
+                    {
+                        level.timesOpened = times;
+                    }
                 }
             }
 
@@ -420,7 +468,7 @@ namespace StardewBot
                 MailDao.SaveLetter(
                    new Letter(
                        "FirstBotLetter"
-                       , "Here is you first bot. Don't break it. ^~Some Body"
+                       , "Here is you first bot. ^Feel free to experiment with what it can do for you. There are a few sample tutorials in the 'Bot Tutorial' TV Channel. ^~Some Body"
                        , new List<Item> { new Bot("0001", farmer: null), phone }
                        , (l) => !Game1.player.mailReceived.Contains(l.Id)
                        , (l) => Game1.player.mailReceived.Add(l.Id)
@@ -432,10 +480,12 @@ namespace StardewBot
         class LevelData
         {
             public Dictionary<String, bool> LevelsCompleted { get; set; }
+            public Dictionary<String, int> LevelsOpened { get; set; }
 
             public LevelData()
             {
                 LevelsCompleted = new Dictionary<string, bool>();
+                LevelsOpened = new Dictionary<string, int>();
             }
         }
     }

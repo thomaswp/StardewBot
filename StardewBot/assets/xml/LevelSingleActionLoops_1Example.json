@@ -1,5 +1,0 @@
-{
-  "Guid": "LevelSingleActionLoops_1Example",
-  "Code": "<xml><block type=\"OnCodeTested\" id=\"(hCXrK!SL-Pg-XkJ7I}W\" x=\"213\" y=\"214\"><next><block type=\"controls_repeat_ext\" id=\"s.SbWzR_8ZjaI#=@9o#T\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"ZL]K|J^$#G{2q(8]=xX}\"><field name=\"NUM\">15</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"lXPO[SP6NhO~3?~sQ4E)\"></block></statement></block></next></block></xml>",
-  "VarMap": "{}"
-}

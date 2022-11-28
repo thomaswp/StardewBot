@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
@@ -44,16 +45,35 @@ namespace StardewBot.Levels
         public Sublevel currentSublevel;
         public bool isCompleted { get; set; }
 
+        public Dictionary<String, Vector2> cropsLocations = new();
+        public Dictionary<Vector2, String> objectLocations
+        {
+            get
+            {
+                Dictionary<Vector2, String> holder = new Dictionary<Vector2, string>();
+                foreach (var obj in LevelLocation.objects.Pairs)
+                {
+                    if (LevelLocation.doesTileHaveProperty((int)obj.Key.X, (int)obj.Key.Y, "Collect", "Paths") != null)
+                    {
+                        holder.TryAdd(obj.Key, obj.Value.name);
+                    }
+                }
+                return holder;
+            }
+        }
+
         //Static Members
         public static GameLocation OriginLocation { get; private set; }
         public static Level CurrentLevel { get; private set; }
         public static Dictionary<string, Level> levelsDict = new();
+        internal int timesOpened;
+
         public static List<Level> GetLevels
         {
             get
             {
                 List<Level> holder = new List<Level>();
-                foreach(var level in levelsDict.Values)
+                foreach (var level in levelsDict.Values)
                 {
                     holder.Add(level);
                 }
@@ -66,14 +86,15 @@ namespace StardewBot.Levels
         {
             foreach (var level in new Level[]
             {
-                //This needs to be changed! The map name is set to the last level initilized
+                //Must be listed in the opposite order as you would like displayed in the menu.
                 //new Loops1(),
                 //new CamLevel(),
                 //new Ifs3(),
                 new LevelConditional_1(),
-                new LevelSingleActionLoops_1(),
-                new LevelMultiActionLoops_1(),
                 new LevelMultiActionLoops_2(),
+                new LevelMultiActionLoops_1(),
+                new LevelSingleActionLoops_1(),
+                new LevelBasics()
                 //new Variables_1(),
                 //new Functions_1()
                 
@@ -81,6 +102,7 @@ namespace StardewBot.Levels
             {
                 level.isCompleted = false;
                 levelsDict.Add(level.ID, level);
+                level.timesOpened = 0;
             }
         }
 
@@ -92,24 +114,27 @@ namespace StardewBot.Levels
             }
         }
 
-        
+
         //Static methods for loading levels and tutorial code
         internal static void LoadTutorialCode(ProgramState state, IModHelper helper)
         {
             foreach (var level in levelsDict.Values)
             {
                 Sublevel holder = level.currentSublevel;
-                if (holder != null)
+                while (holder != null)
                 {
                     var botXML = holder.loadBotXML(helper);
                     if (botXML != null)
                     {
-                        var program = state.GetProgram((String)botXML["Guid"]);
-                        program.Code = (String)botXML["Code"];
-                        program.VarMap = (String)botXML["VarMap"];
+                        var program = state.GetProgram(botXML.Guid);
+                        program.Code = botXML.Code;
+                        program.VarMap = botXML.VarMap;
 
-                        helper.Data.WriteJsonFile(ModEntry.PROGRAMS_FILE, state);
+                        helper.Data.WriteGlobalData("programs", state);
+                        //helper.Data.WriteJsonFile(ModEntry.PROGRAMS_FILE, state);
                     }
+
+                    holder = holder.next;
                 }
             }
         }
@@ -156,6 +181,18 @@ namespace StardewBot.Levels
             if (!levelsDict.TryGetValue(id, out var level)) return false;
             CurrentLevel = level;
             setUpLevel(level.currentSublevel);
+            mapOverlayToggle();
+
+            level.currentSublevel.timesOpened++;
+            level.currentSublevel.timesRan = 0;
+
+            var message = new JObject();
+            message.Add("Level Name", id);
+            message.Add("Sublevel Name", level.currentSublevel.MapName);
+            message.Add("Sublevel Already Completed?", level.currentSublevel.isCompleted ? "Yes" : "No");
+            message.Add("Times Sublevel Opened", level.currentSublevel.timesOpened);
+            ModEntry.logger.Log(message, "Tutorial.Opened");
+
             /*level.currentSublevel.Setup();
             level.currentSublevel.setUpConditions();
             level.currentSublevel.TeleportToStart();*/
@@ -176,22 +213,32 @@ namespace StardewBot.Levels
             level.Setup();
             level.setUpConditions();
 
-            mapOverlayToggle();
-
             level.TeleportToStart();
+            ModEntry.Dispatcher.LoadTutorial(Level.CurrentLevel.MapName + " " + level.type, level.explanationText);
             //level.plantCrops();
             ModEntry.ModHelper.Events.Player.Warped += level.onWarp;
             return true;
         }
 
+        public static void IDEReload()
+        {
+            if (Level.CurrentLevel == null || Level.CurrentLevel.currentSublevel == null) return;
+            var sublevel = Level.CurrentLevel.currentSublevel;
+
+            Level.CurrentLevel.currentSublevel.bot.SwitchTo();
+            ModEntry.Dispatcher.LoadTutorial(Level.CurrentLevel.MapName + " " + sublevel.type, sublevel.explanationText);
+
+        }
+
         public void onWarp(object sender, StardewModdingAPI.Events.WarpedEventArgs e)
         {
-            plantCrops();
+            //plantCrops();
+
         }
 
         protected void Setup()
         {
-            var entry = LevelLocation.GetMapPropertyPosition("Entry", 30, 30); 
+            var entry = LevelLocation.GetMapPropertyPosition("Entry", 30, 30);
 
             Layer back = levelMap.GetLayer("Back");
             var anchor = FindTilePointWithProperty(back, "Anchor");
@@ -249,6 +296,8 @@ namespace StardewBot.Levels
                 }
 
                 var baseTile = layer.Id == "Paths" ? basePathsTile : baseSpringTile;
+
+                
 
                 //ModEntry.logger.Log("Layer: " + layer.Id);
                 for (int x = 0; x < layer.TileWidth; x++)
@@ -314,8 +363,6 @@ namespace StardewBot.Levels
                     }
                 }
             }
-
-            
         }
 
         private void TeleportToStart()
@@ -323,7 +370,8 @@ namespace StardewBot.Levels
             GameLocation location = LevelLocation;
 
             // of creating a function here, an existing function can be used, e.g. if the same function is used multiple times
-            DelayedAction.delayedBehavior TeleportFunction = () => {
+            DelayedAction.delayedBehavior TeleportFunction = () =>
+            {
                 //Insert here the coordinates you want to teleport to
                 Layer layer = location.map.GetLayer("Back");
                 Layer tileData = levelMap.GetLayer("Back");
@@ -347,13 +395,13 @@ namespace StardewBot.Levels
                 //DelayedAction.functionAfterDelay(() => plantCrops(), 1000);
 
                 //Provide Entry Message for this Level
-                Game1.drawObjectDialogue(EntryMessage);
+                if (!String.IsNullOrEmpty(EntryMessage)) Game1.drawObjectDialogue(EntryMessage);
             };
             // Delayed action to be executed after a set time (here 0,1 seconds)
             // Teleporting without the delay may prove to be problematic
             DelayedAction.functionAfterDelay(TeleportFunction, 100);
 
-            
+
 
         }
 
@@ -377,42 +425,86 @@ namespace StardewBot.Levels
                 int index;
                 int harvest;
                 int water;
+                int goal;
 
                 try
                 {
                     int.TryParse(tile.Properties["Index"], out var idx);
                     index = idx;
-                } catch { index = -1; }
+                }
+                catch { index = -1; }
 
                 try
                 {
                     int.TryParse(tile.Properties["Harvestable"], out var harv);
                     harvest = harv;
-                } catch { harvest = -1; }
+                }
+                catch { harvest = -1; }
 
                 try
                 {
                     int.TryParse(tile.Properties["Watered"], out var wat);
                     water = wat;
-                } catch { water = -1; }
+                }
+                catch { water = -1; }
 
-                location.makeHoeDirt(new Vector2(x, y), true);
+                try
+                {
+                    int.TryParse(tile.Properties["Goal"], out var g);
+                    goal = g;
+                }
+                catch { goal = -1; }
+
+                try
+                {
+                    location.makeHoeDirt(new Vector2(x, y), true);
+                }
+                catch
+                {
+
+                }
 
                 var seed = new StardewValley.Object(index, 1);
                 bot.inventory.Add(seed);
                 bot.getFarmer.ActiveObject = seed;
 
+                HoeDirt feature = (HoeDirt)location.GetTerrainFeature(new Vector2(x, y));
+                if (feature.crop != null)
+                {
+                    feature.destroyCrop(new Vector2(x, y), false, location);
+                }
+
                 //ModUtils.placementAction(location, x, y, seed, bot.getFarmer);
                 seed.placementAction(location, x * 64, y * 64, bot.getFarmer);
-                var feature = location.GetTerrainFeature(new Vector2(x, y));
-                if(location.isTileHoeDirt(new Vector2(x, y)) && harvest > 0)
+
+                if (location.isTileHoeDirt(new Vector2(x, y)) && harvest > 0)
                 {
-                    ((StardewValley.TerrainFeatures.HoeDirt)feature).crop.growCompletely();
+                    feature.crop.growCompletely();
                 }
                 if (location.isTileHoeDirt(new Vector2(x, y)) && water > 0)
                 {
-                    ((StardewValley.TerrainFeatures.HoeDirt)feature).performToolAction(new WateringCan(), 0, new Vector2(x,y), location);
+                    feature.performToolAction(new WateringCan(), 0, new Vector2(x, y), location);
                 }
+
+                switch (goal)
+                {
+                    case 0:
+                        cropsLocations.Add("Water", new Vector2(x, y));
+                        break;
+                    default:
+                        cropsLocations.Add("Harvest", new Vector2(x, y));
+                        break;
+                }
+
+
+
+                //else
+                //{
+                //    var message = new JObject();
+                //    message.Add("Error", "Didn't Plant.");ZZ
+                //    ModEntry.logger.Log(message, action: "Level.Error");
+                //}
+
             }
         }
 
@@ -422,19 +514,25 @@ namespace StardewBot.Levels
             Game1.drawObjectDialogue("You cleared the level!");
             await Task.Delay(4000);
 
-            cleanLevel();
-            
+
+
             /*CurrentLevel.currentSublevel.bot = null;*/
 
             if (CurrentLevel.currentSublevel.next != null)
             {
+                cleanLevel();
                 CurrentLevel.currentSublevel.isCompleted = true;
                 CurrentLevel.currentSublevel = CurrentLevel.currentSublevel.next;
                 LoadNextLevel();
-            } else
+            }
+            else
             {
+
                 CurrentLevel.isCompleted = true;
+                var level = CurrentLevel;
                 leaveLevel();
+                level.currentSublevel = level.currentSublevel.prev;
+
             }
         }
 
@@ -446,17 +544,28 @@ namespace StardewBot.Levels
 
         public static void leaveLevel()
         {
+            ModEntry.Dispatcher.EndTutorial();
+            cleanLevel();
             CurrentLevel = null;
-            mapOverlayToggle();
             Game1.warpFarmer("Farm", 64, 15, flip: false);
+            foreach (var bot in Bot.instances)
+            {
+                if (bot.CurrentLocation == Game1.getLocationFromName("Farm"))
+                {
+                    bot.SwitchTo();
+                    break;
+                }
+            }
+            mapOverlayToggle();
         }
 
         private static void mapOverlayToggle()
         {
-            if(Game1.onScreenMenus.Contains(ModEntry.options))
+            if (Game1.onScreenMenus.Contains(ModEntry.options))
             {
                 Game1.onScreenMenus.Remove(ModEntry.options);
-            } else
+            }
+            else
             {
                 Game1.onScreenMenus.Add(ModEntry.options);
             }
@@ -464,8 +573,19 @@ namespace StardewBot.Levels
 
         private static void cleanLevel()
         {
-            CurrentLevel.currentSublevel.DestroyBot();
+            var message = new JObject();
+            message.Add("Level Name", CurrentLevel.MapName);
+            message.Add("Sublevel Name", CurrentLevel.currentSublevel.MapName);
+            message.Add("Sublevel Completed?", CurrentLevel.currentSublevel.isCompleted ? "Yes" : "No");
+            message.Add("Times Code Run", CurrentLevel.currentSublevel.timesRan);
+
+            ModEntry.logger.Log(message, "Tutorial.End");
+
+            CurrentLevel.currentSublevel.saveBotXML();
+
+            CurrentLevel.currentSublevel.objectLocations.Clear();
             CurrentLevel.currentSublevel.LevelLocation.terrainFeatures.Clear();
+            CurrentLevel.currentSublevel.DestroyBot();
         }
 
         public static void OnTesting(BotController botController)
@@ -473,20 +593,20 @@ namespace StardewBot.Levels
             if (CurrentLevel == null) return;
             if (CurrentLevel.currentSublevel == null) return;
             if (CurrentLevel.currentSublevel.bot != botController.Bot) return;
-            resetLevel();   
+            resetLevel();
         }
 
         public static void resetLevel()
         {
+            //var sublevel = Level.CurrentLevel.currentSublevel;
+            //ModEntry.Dispatcher.LoadTutorial(Level.CurrentLevel.MapName + " " + sublevel.type, sublevel.EntryMessage, sublevel.explanationText);
             CurrentLevel.currentSublevel.ResetBot();
+
         }
 
         protected void DestroyBot()
         {
-            if(bot != null)
-            {
-                DelayedAction.functionAfterDelay(() => bot.DestroyBot(LevelLocation), 1);
-            }
+            //DelayedAction.functionAfterDelay(() => { bot.DestroyBot(LevelLocation); this.bot = null; }, 1);
         }
 
         protected void ResetBot()
@@ -507,6 +627,9 @@ namespace StardewBot.Levels
             bot.FacingDirection = startFacingDir;
 
             AddObjects();
+            cropsLocations.Clear();
+            
+            plantCrops();
         }
 
         protected void AddObjects()
@@ -612,22 +735,37 @@ namespace StardewBot.Levels
         public abstract class Sublevel : Level
         {
             public Sublevel next;
+            public Sublevel prev;
+            public List<String> explanationText;
+            public abstract String type { get; }
+            public int timesRan;
 
             public Sublevel()
             {
                 next = null;
+                prev = null;
                 levelConditions = new Conditions();
+                explanationText = new List<string>();
+                timesOpened = 0;
+                timesRan = 0;
+
+            }
+
+            public void CodeRun()
+            {
+                timesRan++;
             }
 
             public void addLast(Sublevel next)
             {
                 Sublevel current = this;
 
-                while(current.next != null)
+                while (current.next != null)
                 {
                     current = current.next;
                 }
 
+                next.prev = current;
                 current.next = next;
             }
 
@@ -639,29 +777,46 @@ namespace StardewBot.Levels
             public abstract Conditions getLevelConditions();
             public abstract void setUpConditions();
 
-            internal JObject loadBotXML(IModHelper helper)
+            internal BlocklyBridge.Program loadBotXML(IModHelper helper)
             {
                 /*using (StreamReader file = File.OpenText("Levels/xml/CamExample.json"));
                 using (JsonTextReader reader = new JsonTextReader(file));*/
-                IDictionary<string, string> data;
+                //IDictionary<string, string> data;
+
+                ProgramState trialData;
 
                 try
                 {
-                    data = helper.ModContent.Load<Dictionary<string, string>>(xmlCodeRoot + MapName + ".json");
-                    if (data == null) return null;
-                } catch
+                    //data = helper.ModContent.Load<Dictionary<string, string>>(xmlCodeRoot + MapName + ".json");
+                    //if (data == null) return null;
+                    trialData = helper.Data.ReadJsonFile<ProgramState>(xmlCodeRoot + "LevelPresets.json");
+                    return trialData.Programs.Where(x => x.Guid == MapName).FirstOrDefault();
+                }
+                catch
                 {
                     return null;
                 }
 
-                JObject obj = new JObject();
+                //JObject obj = new JObject();
 
-                foreach (var entry in data)
-                {
-                    obj.Add(entry.Key, entry.Value);
-                }
+                //foreach (var entry in data)
+                //{
+                //    obj.Add(entry.Key, entry.Value);
+                //}
 
-                return obj;
+                
+            }
+
+            internal void saveBotXML()
+            {
+                var prog = ModEntry.Dispatcher.State.GetProgram(this.MapName);
+                var presets = ModEntry.helper.Data.ReadJsonFile<ProgramState>(xmlCodeRoot + "LevelPresets.json");
+                var saveprog = presets.GetProgram(prog.Guid);
+
+                saveprog.Code = prog.Code;
+                saveprog.VarMap = prog.VarMap;
+
+                ModEntry.helper.Data.WriteJsonFile(xmlCodeRoot + "LevelPresets.json", presets);
             }
         }
     }

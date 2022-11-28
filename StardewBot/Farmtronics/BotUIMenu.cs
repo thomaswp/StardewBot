@@ -21,6 +21,7 @@ namespace Farmtronics {
 
 		Bot bot;
 		InventoryMenu botInventoryMenu;
+		ClickableComponent editCodeButton;
 
 		//Shell shell;
 
@@ -34,6 +35,18 @@ namespace Farmtronics {
 		static Vector2 preferredPosition;
 		static Vector2 lastGameviewSize;
 
+		int playerInvHeight;
+		int totalHeight;
+		int widthOfTopStuff;
+		int yPositionForInventory;
+		int playerInvYDelta
+        {
+			get
+            {
+				return consoleTop + totalHeight - playerInvHeight - yPositionForInventory;
+			}
+        }
+
 		public BotUIMenu(Bot bot)
 		: base(null, okButton: true, trashCan: true) {
 			print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}");
@@ -44,19 +57,18 @@ namespace Farmtronics {
 			// The position of a Menu is its top-left corner (ignoring the border), in game viewport coordinates.
 			// Our height is determined by the sum of the console height (with bot inventory and status next to it),
 			// and the player inventory height.
-			int playerInvHeight = 224;		// (estimate for size of player UI)
-			int totalHeight = playerInvHeight + consoleHeight;
+			playerInvHeight = 150;		// (estimate for size of player UI)
+			totalHeight = playerInvHeight + consoleHeight;
 
-			int widthOfTopStuff = consoleWidth + 220;	// (includes estimate for size of bot UI, plus some padding)
+			widthOfTopStuff = consoleWidth + 220;	// (includes estimate for size of bot UI, plus some padding)
 
 			consoleTop = Game1.uiViewport.Height/2 - totalHeight/2;
 			if (consoleTop < 40) consoleTop = 40;	// (empirical fudge factor)
 			consoleLeft = Game1.uiViewport.Width/2 + widthOfTopStuff/2 - consoleWidth;
 
 			// Player inventory position is weird.  MenuWithInventory.cs says:
-			int yPositionForInventory = yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth + 192 - 16; // + inventoryYOffset;
-			// So:
-			int playerInvYDelta = consoleTop + totalHeight - playerInvHeight - yPositionForInventory;
+			yPositionForInventory = yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth + 192 - 16; // + inventoryYOffset;
+			// So: playerInvYDelta 
 
 			print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 
@@ -84,6 +96,8 @@ namespace Farmtronics {
 					}
 				}
 			}
+
+			editCodeButton = new ClickableComponent(new Rectangle(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 7 + IClickableMenu.borderWidth + 140, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + 30, 400, 120), "") { };
 
 			// TODO: Add my shell
 			//bot.shell.console.RemoveFrameAndPositionAt(consoleLeft + 53, consoleTop + 34);	// (empirical fudge values)
@@ -142,15 +156,32 @@ namespace Farmtronics {
 			//int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			//Debug.Log($"Bot.receiveLeftClick: slot={slot}");
 			base.receiveLeftClick(x, y, playSound);
+			if (Game1.activeClickableMenu == null)
+			{
+				return;
+			}
 			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
 
 			ModEntry.logger.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+			this.editCodeButton.bounds = editBounds();
+			if (editBounds().Contains(x, y))
+			{
+				Game1.playSound("smallSelect");
+
+				bot.SwitchTo();
+
+				this.exitThisMenu(true);
+
+				return;
+			}
 
 			if (heldItem == null && inDragArea(x,y)) {
 				var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
 				lastDragPos = cursor.GetScaledScreenPixels();
 				isDragging = true;
 			}
+
+
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
@@ -208,6 +239,15 @@ namespace Farmtronics {
 				drawHeight);
 		}
 
+		Rectangle editBounds()
+		{
+			return new Rectangle(
+				(consoleLeft - IClickableMenu.borderWidth - IClickableMenu.spaceToClearSideBorder) + (consoleWidth / 2) - 180,
+				consoleTop - IClickableMenu.borderWidth + 30,
+				400,
+				80);
+		}
+
 		public override void draw(SpriteBatch b) {
 			// darken the background
 			b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height), Color.Black * 0.5f);
@@ -222,20 +262,28 @@ namespace Farmtronics {
 			// draw the console
 			Rectangle consoleR = consoleBounds();
 			Game1.drawDialogueBox(consoleR.X, consoleR.Y, consoleR.Width, consoleR.Height, speaker: false, drawOnlyBox: true);
-			
+
+			// draw Code Switch Button
+
+			//Text Box
+			Rectangle editR = editBounds();
+			IClickableMenu.drawTextureBox(b, Game1.mouseCursors, new Rectangle(384, 396, 15, 15), editR.X, editR.Y, editR.Width, editR.Height, editR.Contains(Game1.getOldMouseX(), Game1.getOldMouseY()) ? Color.Wheat : Color.White, 4f, drawShadow: false);
+			Utility.drawTextWithShadow(b, "Edit Bot Code", Game1.dialogueFont, new Vector2(editR.X + 30, editR.Y + 15), Game1.textColor, 1f, 0.1f);
+
+
 			// TODO: Draw my menu
 			//bot.shell.console.draw(b);
 
-/*
-			if (poof != null)
-			{
-				poof.draw(b, localPosition: true);
-			}
-			foreach (TransferredItemSprite transferredItemSprite in _transferredItemSprites)
-			{
-				transferredItemSprite.Draw(b);
-			}
-*/
+			/*
+						if (poof != null)
+						{
+							poof.draw(b, localPosition: true);
+						}
+						foreach (TransferredItemSprite transferredItemSprite in _transferredItemSprites)
+						{
+							transferredItemSprite.Draw(b);
+						}
+			*/
 			if (hoverText != null && hoveredItem == null) {
 				if (hoverAmount > 0) {
 					IClickableMenu.drawToolTip(b, hoverText, "", null, heldItem: true, -1, 0, -1, -1, null, hoverAmount);

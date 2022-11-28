@@ -28,9 +28,8 @@ namespace StardewBot.Levels
         }
 
         public class CamExample : Sublevel {
-
+            public override string type => "Example";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "CamExample";
             public override string EntryMessage => "Example Message";
 
@@ -49,9 +48,8 @@ namespace StardewBot.Levels
 
         public class CamActual : Sublevel
         {
-
+            public override string type => "Actual";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "CamActual";
             public override string EntryMessage => "Example Message";
 

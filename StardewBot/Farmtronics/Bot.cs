@@ -20,6 +20,7 @@ using StardewBot;
 using StardewBot.Levels;
 using BlocklyBridge;
 using static StardewValley.Debris;
+using Newtonsoft.Json.Linq;
 
 namespace Farmtronics {
 	public class MovedArgs : EventArgs
@@ -178,7 +179,7 @@ namespace Farmtronics {
 			// to the instances list.
 		}
 
-		public Bot(string id, Vector2 tileLocation, GameLocation location=null, Farmer farmer=null, String farmerName=null) :base(tileLocation, vanillaObjectTypeId) {
+		public Bot(string id, Vector2 tileLocation, GameLocation location=null, Farmer farmer=null, String farmerName=null, bool SwitchToBot = true) :base(tileLocation, vanillaObjectTypeId) {
 			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
@@ -216,13 +217,14 @@ namespace Farmtronics {
 
 			Controller = new BotController(this, ID);
 			//TODO Eventually shouldn't happen
-			SwitchTo();
+			if(SwitchToBot) SwitchTo();
 
 			instances.Add(this);
 		}
 
 		public void SwitchTo()
         {
+
 			ModEntry.Dispatcher.SetTarget(Controller);
 		}
 
@@ -435,7 +437,7 @@ namespace Farmtronics {
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
 
-				Bot bot = new Bot(chest.modData[dataKey.id], tileLoc, inLocation, farmerName: chest.modData[dataKey.name]);
+				Bot bot = new Bot(chest.modData[dataKey.id], tileLoc, inLocation, farmerName: chest.modData[dataKey.name], SwitchToBot: false);
 				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
 				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
 
@@ -666,8 +668,10 @@ namespace Farmtronics {
 				newBounds.Y += dRow * 64;
 				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer:false, 0, glider:false, farmer);
 				if (coll) {
+					var message = new JObject();
+					message.Add("Collision position", $"X= {newBounds.X}, Y= {newBounds.Y}");
 					//Debug.Log("Colliding position: " + newBounds);
-					ModEntry.logger.Log("", action:"");
+					ModEntry.logger.Log(message, action:"Bot.Collide");
 					return;
 				}
 			}
@@ -796,25 +800,27 @@ namespace Farmtronics {
 
         }
 
+		//This is where moving offscreen is diabled!
+
 		public void Update(GameTime gameTime) {
 			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			if (debug) ModEntry.logger.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}");
 
 			Controller.Update(gameTime);
 
-			// Weird things happen if we try to update bots in locations other than
-			// the current location.  We should try harder to get that to work sometime,
-			// but for now, let's just detect that case and bail out.
-			if (farmer.currentLocation != Game1.currentLocation) return;
+            // Weird things happen if we try to update bots in locations other than
+            // the current location.  We should try harder to get that to work sometime,
+            // but for now, let's just detect that case and bail out.
+            if (farmer.currentLocation != Game1.currentLocation) return;
 
 
-			// TODO: Do things!
-			//if (shell != null) {
-			//	shell.console.update(gameTime);
-			//	if (farmer.Name != Name) farmer.Name = Name;
-			//}
+            // TODO: Do things!
+            //if (shell != null) {
+            //	shell.console.update(gameTime);
+            //	if (farmer.Name != Name) farmer.Name = Name;
+            //}
 
-			if (toolUseFrame > 0) {
+            if (toolUseFrame > 0) {
 				toolUseFrame++;
 				if (toolUseFrame == 6) ApplyToolToTile();
 				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!

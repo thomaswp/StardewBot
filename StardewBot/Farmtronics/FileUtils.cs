@@ -79,7 +79,7 @@ public static class FileUtils {
 			} else if (parts[i] == "..") {
 				// go up one level (error if we're at the root)
 				if (i == 1) {
-					Logger.Log("Wtf? " + parts[i]);
+					Logger.Log("Wtf? " + parts[i], null);
 					error = "Invalid path";
 					return null;
 				}

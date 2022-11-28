@@ -28,9 +28,8 @@ namespace StardewBot.Levels
         }
 
         public class Variables_1Example : Sublevel {
-
+            public override string type => "Example";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "Variables_1Example";
             public override string EntryMessage => "In this example level, open the code editor and examine the code. Make the indicate change and run the code to move on.";
 
@@ -49,6 +48,7 @@ namespace StardewBot.Levels
 
         public class Variables_1Actual : Sublevel
         {
+            public override string type => "Actual";
 
             public override Conditions levelConditions { get; set; }
 

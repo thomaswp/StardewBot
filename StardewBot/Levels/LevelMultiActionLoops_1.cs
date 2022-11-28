@@ -27,13 +27,16 @@ namespace StardewBot.Levels
 
         public class LevelMultiActionLoops_1Example : Sublevel
         {
+            public override string type => "Example";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "LevelMultiActionLoops_1Example";
             public override string EntryMessage => "In this example level, open the code editor and examine the code. Make the indicate change and run the code to move on.";
 
             public override void setUpConditions()
             {
+                explanationText.Add("In this tutorial we will try adding more actions into a single loop.");
+                explanationText.Add("A loop has been provided for you, and your objective is to add the second action block inside of the loop.");
+
                 levelConditions = new Conditions();
                 levelConditions.AddLocationCondition(botGoal); // 
             }
@@ -47,13 +50,16 @@ namespace StardewBot.Levels
 
         public class LevelMultiActionLoops_1Actual : Sublevel
         {
+            public override string type => "Actual";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "LevelMultiActionLoops_1Actual";
             public override string EntryMessage => "In this level, your goal is to reach the grassy location";
 
             public override void setUpConditions()
             {
+                explanationText.Add("Good Job. The next step is to build the loop on your own.");
+                explanationText.Add("You will need four actions inside of the loop in order to get through each type of obstacle. Your objective is to reach the grassy patch.");
+
                 levelConditions = new Conditions();
                 levelConditions.AddLocationCondition(botGoal);
             }

@@ -1,0 +1,49 @@
+{
+  "Programs": [
+    {
+      "Guid": "LevelBasicsExample",
+      "Code": "<xml><block type=\"OnClick\" id=\"2w0I3O_1XZ@*5d/n^a`?\" x=\"79\" y=\"155\"><comment pinned=\"true\" h=\"73\" w=\"89\">EVENTS</comment><next><block type=\"MoveForward\" id=\"%YY=DOO*$p_SOXZs._]D\"><comment pinned=\"true\" h=\"72\" w=\"85\">MOVEMENT</comment><next><block type=\"MoveForward\" id=\",XiW221/[;HQF_BWf1z7\"><comment pinned=\"true\" h=\"72\" w=\"85\">MOVEMENT</comment></block></next></block></next></block><block type=\"IsForwardWood\" id=\"9t_`|f`ON=1(P7j}Z;}z\" x=\"389\" y=\"249\"><comment pinned=\"true\" h=\"77\" w=\"105\">SENSING</comment></block><block type=\"OnDayStarted\" id=\"lWOO$R-w*#()A|D/.d;*\" x=\"65\" y=\"305\"></block><block type=\"TurnLeft\" id=\"A%If#/$8kRZ)q*]{{;[)\" x=\"227\" y=\"306\"></block><block type=\"IsForwardStone\" id=\")TKGi5ARa0%THcbSD!0=\" x=\"389\" y=\"314\"></block><block type=\"OnCodeTested\" id=\")T,]Bt;Lw_k/ix2h64Cr\" x=\"66\" y=\"372\"></block><block type=\"TurnRight\" id=\":nDW#4]L5QAMOCihTn)_\" x=\"227\" y=\"367\"></block><block type=\"IsForwardGrass\" id=\"7Uca1nN=aH0(DsK7V/*.\" x=\"387\" y=\"369\"></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelBasicsActual",
+      "Code": "<xml><block type=\"UseTool\" id=\"_Q~_Oua~#tids$XPg[BK\" x=\"342\" y=\"-96\"><field name=\"tool\">Hoe</field></block><block type=\"IsTillable\" id=\"^+kcQVPst:V4+:6}n!%,\" x=\"858\" y=\"-60\"></block><block type=\"OnClick\" id=\"+`g$1:Cn1hb)W:n2pkFW\" x=\"345\" y=\"-27\"><next><block type=\"Harvest\" id=\"$*/0nc(e=)UGW=~59,|q\"></block></next></block><block type=\"IsCropForwardHandHarvestable\" id=\"fuX7Q2QQZIbN5oLq]RyH\" x=\"711\" y=\"-12\"></block><block type=\"IsCropFullyGrown\" id=\"+f1}})|M3p{I)8n_G8Us\" x=\"801\" y=\"27\"></block><block type=\"plantSeed\" id=\":Zx6RC*_O]j|2Z=JG*S:\" x=\"376\" y=\"55\"><comment pinned=\"false\" h=\"108\" w=\"189\">I grab the first seed available in the bot's inventory!</comment></block><block type=\"NumberOfInventoryItems\" id=\"Q./cJePrGJh_dvFa3YtU\" x=\"752\" y=\"72\"></block><block type=\"DisplayPrompt\" id=\"G0|5}Y~?EE#ItaI_5XC_\" x=\"341\" y=\"100\"><value name=\"message\"><block type=\"text\" id=\"[n9|@WX2sM[ur9eqOprG\"><field name=\"TEXT\">Hello World!</field><comment pinned=\"false\" h=\"80\" w=\"160\">You can find me in the Text Category.</comment></block></value></block><block type=\"IsInventoryFull\" id=\"/1zuL:B|i]KmT~RA4i7q\" x=\"817\" y=\"117\"></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelSingleActionLoops_1Example",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"(hCXrK!SL-Pg-XkJ7I}W\" x=\"191\" y=\"3\"><next><block type=\"controls_repeat_ext\" id=\"s.SbWzR_8ZjaI#=@9o#T\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"ZL]K|J^$#G{2q(8]=xX}\"><field name=\"NUM\">8</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"lXPO[SP6NhO~3?~sQ4E)\"></block></statement></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelSingleActionLoops_1Actual",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"CVxju!AnJ2`R_Nqok3z}\" x=\"67\" y=\"-67\"><next><block type=\"controls_repeat_ext\" id=\"%/*knHO^^lEHZ_1:byJb\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"pH?q8gSrfrT-20Dw2,+#\"><field name=\"NUM\">7</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"?]k-zpO`4Egu?Qd6D?^A\"></block></statement></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelConditionals_1Example",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"ca})Q(cB~c_17M!rWtn+\" x=\"141\" y=\"98\"><next><block type=\"controls_repeat_ext\" id=\"^[i@rRa1j-{Ev%F*%lr^\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"sVHlY=f1blwuh1mx5PC0\"><field name=\"NUM\">0</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"}vAL6aAZe+jc9MndpK-w\"><next><block type=\"TurnLeft\" id=\"I`cT4_0VK*{ei8i=E-HB\"><next><block type=\"controls_if\" id=\"8k*?+BH+iQ7oFmSJ:(J[\"><value name=\"IF0\"><block type=\"IsForwardWood\" id=\"2(z]B:msAR5B9IrLDxVg\"></block></value><next><block type=\"TurnRight\" id=\"8ilw=.pdq`w2m*h-I%R*\"></block></next></block></next></block></next></block></statement></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelConditionals_1Actual",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"ca})Q(cB~c_17M!rWtn+\" x=\"141\" y=\"98\"><next><block type=\"controls_repeat_ext\" id=\"^[i@rRa1j-{Ev%F*%lr^\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"sVHlY=f1blwuh1mx5PC0\"><field name=\"NUM\">10</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"}vAL6aAZe+jc9MndpK-w\"><next><block type=\"TurnLeft\" id=\"I`cT4_0VK*{ei8i=E-HB\"><next><block type=\"controls_if\" id=\"8k*?+BH+iQ7oFmSJ:(J[\"><value name=\"IF0\"><block type=\"IsForwardWood\" id=\"2(z]B:msAR5B9IrLDxVg\"></block></value><statement name=\"DO0\"><block type=\"UseTool\" id=\"E-d67is6c6VW3beJ/+C3\"><field name=\"tool\">Axe</field></block></statement><next><block type=\"controls_if\" id=\"biA*W.)8]lf,X~!x]$]T\"><value name=\"IF0\"><block type=\"IsForwardStone\" id=\"J4y~Rn_d8orvp4s+w+o(\"></block></value><statement name=\"DO0\"><block type=\"UseTool\" id=\"CJv8_Ov$Y$-RcN2GS7x-\"><field name=\"tool\">Pickaxe</field></block></statement><next><block type=\"TurnRight\" id=\"8ilw=.pdq`w2m*h-I%R*\"></block></next></block></next></block></next></block></next></block></statement></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelMultiActionLoops_1Example",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"BBmD`:)8kG8U^y;V4n}O\" x=\"396\" y=\"183\"><next><block type=\"controls_repeat_ext\" id=\"o0Mq=Tw%Uh~)h}8SFa1D\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"L/[-)ncYz*B~X8ei~$0w\"><field name=\"NUM\">10</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"?`uHR*yoH/+*:d-D9s@;\"></block></statement></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelMultiActionLoops_1Actual",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"BBmD`:)8kG8U^y;V4n}O\" x=\"396\" y=\"183\"><next><block type=\"controls_repeat_ext\" id=\"o0Mq=Tw%Uh~)h}8SFa1D\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"L/[-)ncYz*B~X8ei~$0w\"><field name=\"NUM\">0</field></shadow></value></block></next></block></xml>",
+      "VarMap": "{}"
+    },
+    {
+      "Guid": "LevelMultiActionLoops_2Actual",
+      "Code": "<xml><block type=\"OnCodeTested\" id=\"?g-?@owd@Rt3Q_$kI(PF\" x=\"58\" y=\"142\"><next><block type=\"procedures_callnoreturn\" id=\"/UPlKLEI!7I=ogd]+R~7\"><mutation name=\"OneRow\"></mutation><next><block type=\"procedures_callnoreturn\" id=\"3%1EZ^0)Do2zuC_^Yw1;\"><mutation name=\"OneRow\"></mutation><next><block type=\"procedures_callnoreturn\" id=\"{.^5N*agK#*pINtIC8ns\"><mutation name=\"OneRow\"></mutation><next><block type=\"procedures_callnoreturn\" id=\"u3*/3^JT[9n]{:+I4`x`\"><mutation name=\"OneRow\"></mutation></block></next></block></next></block></next></block></next></block><block type=\"procedures_defnoreturn\" id=\"M(xW{kG~Y8kAp5(^[-0^\" x=\"248\" y=\"145\"><field name=\"NAME\">OneRow</field><comment pinned=\"false\" h=\"80\" w=\"160\">Describe this function...</comment><statement name=\"STACK\"><block type=\"controls_repeat_ext\" id=\"E)n8}fAS|+_{X}Qkh4Tu\"><value name=\"TIMES\"><shadow type=\"math_number\" id=\"J.mz?;cvu-8B1S[vT^Z2\"><field name=\"NUM\">3</field></shadow></value><statement name=\"DO\"><block type=\"MoveForward\" id=\"Zdd#LyS+G7JtfJo|pjch\"></block></statement></block></statement></block></xml>",
+      "VarMap": "{}"
+    }
+  ]
+}

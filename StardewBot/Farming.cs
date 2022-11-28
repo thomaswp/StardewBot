@@ -19,8 +19,23 @@ namespace StardewBot
     [ScriptableBehavior("Farming", 180)]
     public class Farming : ActionCategory
     {
+        public enum ToolType
+        {
+            Hoe,
+            Axe,
+            Pickaxe,
+            Watering_Can,
+            Scythe,
+        }
+
         public Farming(BotController controller) : base(controller)
         { }
+
+        [ScriptableMethod]
+        public AsyncMethod UseTool(ToolType tool)
+        {
+            return DoUntilFinished(() => Bot.UseTool(tool.ToString().Replace("_", " ")));
+        }
 
         [ScriptableMethod]
         public AsyncMethod Harvest()
@@ -134,6 +149,12 @@ namespace StardewBot
         public AsyncFunction<int> NumberOfInventoryItems()
         {
             return Result(Bot.inventory.Count);
+        }
+
+        [ScriptableMethod]
+        public AsyncFunction<bool> IsInventoryFull()
+        {
+            return Result(Bot.getFarmer.isInventoryFull());
         }
     }
 }

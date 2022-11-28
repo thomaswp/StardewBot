@@ -26,8 +26,8 @@ namespace StardewBot.Levels
 
         public class LevelConditionals_2Example : Sublevel
         {
+            public override string type => "Example";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "LevelConditionals_2Example";
             public override string EntryMessage => "In this example level, open the code editor and examine the code. Make the indicate change and run the code to move on.";
 
@@ -46,8 +46,8 @@ namespace StardewBot.Levels
 
         public class LevelConditionals_2Actual : Sublevel
         {
+            public override string type => "Actual";
             public override Conditions levelConditions { get; set; }
-
             public override string MapName => "LevelConditionals_2Actual";
             public override string EntryMessage => "In this level, your goal is to reach the grassy location";
 

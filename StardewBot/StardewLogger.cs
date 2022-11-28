@@ -54,9 +54,9 @@ namespace StardewBot
             Log(message, null);
         }
 
-        public void Log(object message, String action = null, String code = null, bool justNewLine = false, bool header = false)
+        public void Log(object msg, String action = null, String code = null, bool justNewLine = false, bool header = false, bool displayMessage = true)
         {
-            monitor.Log($"{message}", LogLevel.Debug);
+            if(displayMessage) monitor.Log($"{msg}", LogLevel.Debug);
 
             var methodInfo = new StackTrace().GetFrame(3).GetMethod();
             if(methodInfo.Name.Equals("SaveCode"))
@@ -66,7 +66,17 @@ namespace StardewBot
 
             if (action is not null)
             {
-                JObject JMessage = (JObject) message;
+                String message;
+
+                if(msg is JObject)
+                {
+                    message = ((JObject)msg).ToString();
+                } else
+                {
+                    message = $"{msg}";
+                }
+
+                //JObject JMessage = (JObject) message;
 
                 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
@@ -92,12 +102,12 @@ namespace StardewBot
 
                 var date = justNewLine ? "" : DateTime.Now.ToString();
                 var records = new List<LogItem> {
-                    new LogItem {Date = date, Action = action, Message = $"{JMessage}", Code = code, InGameTime = gametime, InGameMoney = gamemoney },
+                    new LogItem {Date = date, Action = action, Message = message, Code = code, InGameTime = gametime, InGameMoney = gamemoney },
                 };
-                
-                
-                using (var sw = new StreamWriter(path, true))
-                using (CsvWriter csv = new CsvWriter(sw, config))
+
+                using (var stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Write))
+                using (var writer = new StreamWriter(stream))
+                using (CsvWriter csv = new CsvWriter(writer, config))
                 {
                     csv.WriteRecords(records);
                 }

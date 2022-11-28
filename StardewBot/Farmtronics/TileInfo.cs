@@ -152,7 +152,7 @@ namespace Farmtronics {
             //var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
             foreach (var clump in loc.resourceClumps)
             {
-				Logger.Log(clump.GetType().Name + ": " + clump.tile.Value);
+				Logger.Log(clump.GetType().Name + ": " + clump.tile.Value, null);
 				//if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) list.Add(clump);
 				if (clump.occupiesTile((int)xy.X, (int)xy.Y)) list.Add(clump);
             }
