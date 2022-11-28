@@ -48,7 +48,7 @@ namespace StardewBot
             message.Add("Event", "On Click");
             ModEntry.logger.Log(message, "IDE.Run");
 
-            if (Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
+            if (Level.CurrentLevel != null && Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
 
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
@@ -61,7 +61,7 @@ namespace StardewBot
             message.Add("Event", "Day Start");
             ModEntry.logger.Log(message, "IDE.Run");
 
-            if (Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
+            if (Level.CurrentLevel != null && Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
 
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
@@ -81,6 +81,9 @@ namespace StardewBot
             message.Add("Type", "Event");
             message.Add("Event", "Test Button");
             ModEntry.logger.Log(message, "IDE.Run");
+
+            if (Level.CurrentLevel != null && Level.CurrentLevel.currentSublevel != null) Level.CurrentLevel.currentSublevel.CodeRun();
+
             BlocklyGenerator.SendEvent(Controller, System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
     }

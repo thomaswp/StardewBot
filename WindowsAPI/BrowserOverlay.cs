@@ -202,11 +202,23 @@ namespace WindowsAPI
                 try
                 {
                     string target = blocklyPath;
-                    var browserProcess = new Process();
-                    browserProcess.StartInfo.FileName = path;
-                    browserProcess.StartInfo.Arguments =  $"\"{target}\" --chrome --incognito --kiosk";
-                    browserProcess.Start();
-                    this.browserProcess = browserProcess;
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        var browserProcess = new Process();
+                        browserProcess.StartInfo.FileName = path;
+                        browserProcess.StartInfo.Arguments = $"\"{target}\" --chrome --incognito --kiosk";
+                        browserProcess.Start();
+                        this.browserProcess = browserProcess;
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        Process.Start("xdg-open", target);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        Process.Start("open", target);
+                    }
 
                     break;
                 }
