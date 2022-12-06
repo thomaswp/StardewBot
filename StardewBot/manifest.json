@@ -1,7 +1,7 @@
 {
   "Name": "StardewBot",
   "Author": "Thomas Price, Camille Jones",
-  "Version": "1.0.0",
+  "Version": "1.0.2",
   "Description": "TODO",
   "UniqueID": "StardewBot",
   "EntryDll": "StardewBot.dll",

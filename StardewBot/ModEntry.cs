@@ -170,12 +170,12 @@ namespace StardewBot
 
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            //if (e.Button == SButton.X)
-            //{
-            //    logger.Log("Toggling Overlay");
-            //    if (Overlay.Showing) Overlay.Hide();
-            //    else Overlay.Show();
-            //}
+            if (e.Button == SButton.X)
+            {
+                logger.Log("Toggling Overlay");
+                if (Overlay.Showing) Overlay.Hide();
+                else Overlay.Show();
+            }
 
             if (!Context.IsWorldReady)
                 return;
@@ -199,6 +199,17 @@ namespace StardewBot
                     //if (Overlay.Showing) Overlay.Hide();
                     //else Overlay.Show();
                     toggleMenu( new BotPhoneMenu() );
+                }
+            }
+
+            if (e.Button == SButton.MouseLeft)
+            {
+                foreach (var bot in Bot.instances)
+                {
+                    if (e.Cursor.Tile == bot.TileLocation)
+                    {
+                        bot.Controller.OnClick();
+                    }
                 }
             }
         }

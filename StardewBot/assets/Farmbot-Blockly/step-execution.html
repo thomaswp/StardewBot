@@ -45,7 +45,7 @@
 		position: fixed;
 		z-index: 30;
 		top: 25px;
-		right: 20px;
+		right: 65px;
 		width: 6em;
 		height: 80px;
 		border: none;
@@ -65,6 +65,26 @@
 		background-color: rgba(173,100,0,0.1);
 		background-blend-mode: multiply;
 		transition: unset;
+	}
+	
+	button#exit {
+		width: 44px;
+		height: 44px;
+		position: fixed;
+		background: url(images/CloseButton.png);
+		top: 10px;
+		right: 10px;
+		border: none;
+	}
+
+	button#exit:hover {
+		transform: scale(1.03);
+		filter: brightness(0.9);
+	}
+
+	button#exit:active {
+		transform: unset;
+		filter: unset;
 	}
 	
 	svg.blocklySvg {
@@ -204,6 +224,7 @@
   <div id="container" style="width: 100%; height: 100%">
     <div id="blocklyDiv" style="height: 100%; width: 100%"></div>
     <button id="test-button" onclick="testCode()">Test My Code</button>
+	<button id="exit" onclick="closeIDE()"></button
   </div>
 
   <xml id="toolbox" style="display: none">
@@ -545,7 +566,7 @@
 
   <script type="text/javascript">
     function testCode() {
-      if (!window.socket) return;
+      if (!window.socket || window.socket.readyState > 1) return;
       console.log("Test!");
       window.socket.send(JSON.stringify({
         type: 'test',
@@ -553,16 +574,21 @@
       }));
     }
 
-      document.onkeydown = function(e) {
-      if (!window.socket) return;
+    document.onkeydown = function(e) {
       console.log(document.activeElement);
       if (e.code === 'KeyX') {
-        window.socket.send(JSON.stringify({
+		closeIDE();
+      }
+    }
+	
+	function closeIDE() {
+		console.log("Working");
+		if (!window.socket || window.socket.readyState > 1) return;
+		window.socket.send(JSON.stringify({
           type: 'minimize',
           data: null,
         }));
-      }
-    }
+	}
 	
 	document.getElementById("explanationHeader").onclick = function(e) {
 		if(explanation.length > 0) {

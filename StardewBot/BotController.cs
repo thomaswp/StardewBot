@@ -1,6 +1,7 @@
 ﻿using BlocklyBridge;
 using Farmtronics;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewValley;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace StardewBot
         public readonly string Name;
         public readonly Bot Bot;
 
-        private Dictionary<Type, IBehavior> behaviors = new Dictionary<Type, IBehavior>();
+        private Dictionary<String, IBehavior> behaviors = new Dictionary<String, IBehavior>();
         private MethodQueue queue = new BlocklyBridge.MethodQueue();
 
         public BotController(Bot bot, string guid)
@@ -34,7 +35,15 @@ namespace StardewBot
                 new Farming(this)
             })
             {
-                behaviors.Add(behavior.GetType(), behavior);
+                behaviors.Add(behavior.GetType().Name, behavior);
+            }
+        }
+
+        public void OnClick()
+        {
+            if (behaviors.TryGetValue("Events", out var eve))
+            {
+                ((Events)eve).OnClick();
             }
         }
 
@@ -60,7 +69,7 @@ namespace StardewBot
 
         public object GetObjectForType(Type declaringType)
         {
-            if (behaviors.TryGetValue(declaringType, out var obj)) return obj;
+            if (behaviors.TryGetValue(declaringType.Name, out var obj)) return obj;
             throw new NotImplementedException("Unknown type: " + declaringType.Name);
         }
 
@@ -77,6 +86,12 @@ namespace StardewBot
         {
             foreach (var behavior in behaviors.Values) behavior.Update(time);
             queue.Update();
+        }
+
+        public void Dispose()
+        {
+            behaviors.Clear();
+            
         }
     }
 
