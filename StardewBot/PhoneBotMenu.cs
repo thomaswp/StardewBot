@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework;
 using StardewValley.BellsAndWhistles;
 using Newtonsoft.Json.Linq;
 using Farmtronics;
+using Farmtronics.Bot;
 
 namespace StardewBot.Levels
 {
@@ -94,7 +95,7 @@ namespace StardewBot.Levels
             this.BotButtons = new List<ClickableComponent>();
             for (int i = 0; i < 6; i++)
             {
-                this.BotButtons.Add(new ClickableComponent(new Rectangle(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 7 + IClickableMenu.borderWidth + 140, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + i * (buttonTotalHeight / 6), 165 , buttonTotalHeight / 6), i.ToString() ?? "")
+                this.BotButtons.Add(new ClickableComponent(new Rectangle(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 7 + IClickableMenu.borderWidth + 140, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + i * (buttonTotalHeight / 6), 165, buttonTotalHeight / 6), i.ToString() ?? "")
                 {
                     myID = i,
                     downNeighborID = -7777,
@@ -125,7 +126,7 @@ namespace StardewBot.Levels
         private void paginateBots()
         {
             this.pages = new List<List<Bot>>();
-            BotsInFarm = Bot.instances.Where(b => b != null && b.CurrentLocation.Name == "Farm").ToList();
+            BotsInFarm = BotManager.instances.Where(b => b != null && b.currentLocation.Name == "Farm").ToList();
             ActiveBot = null;
 
             for (int j = BotsInFarm.Count - 1; j >= 0; j--)
@@ -138,14 +139,15 @@ namespace StardewBot.Levels
             }
             for (int i = BotsInFarm.Count - 1; i >= 0; i--)
             {
-                    int which2 = BotsInFarm.Count - 1 - i;
-                    this.pages[which2 / 6].Add(BotsInFarm[i]);
-                
+                int which2 = BotsInFarm.Count - 1 - i;
+                this.pages[which2 / 6].Add(BotsInFarm[i]);
+
             }
             if (this.pages.Count == 0)
             {
                 this.pages.Add(new List<Bot>());
-            } else
+            }
+            else
             {
                 ActiveBot = this.pages[0][0];
             }
@@ -194,7 +196,8 @@ namespace StardewBot.Levels
                     try
                     {
                         ActiveBot = this.pages[this.currentPage][i];
-                    } catch
+                    }
+                    catch
                     {
                         Game1.drawObjectDialogue("No Bot Found.");
                     }
@@ -245,12 +248,12 @@ namespace StardewBot.Levels
             Game1.drawDialogueBox(this.xPositionOnScreen, this.yPositionOnScreen, this.width, this.height, speaker: true, drawOnlyBox: true);
             base.drawVerticalPartition(b, this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder + this.leftWidth);
 
-            
+
 
             //SpriteText.drawString(b, ActiveBot != null ? ActiveBot.name : "No Bot Selected." , (this.xPositionOnScreen), this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + topPadding, width: this.width - this.leftWidth, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center);
-            SpriteText.drawString(b, ActiveBot != null ? ActiveBot.name : "No Bot Selected." , (this.xPositionOnScreen + leftWidth + spaceToClearSideBorder * 2 + borderWidth * 2) + 35, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + topPadding, width: 380, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center, drawBGScroll: 0);
+            SpriteText.drawString(b, ActiveBot != null ? ActiveBot.name : "No Bot Selected.", (this.xPositionOnScreen + leftWidth + spaceToClearSideBorder * 2 + borderWidth * 2) + 35, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + topPadding, width: 380, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center, drawBGScroll: 0);
 
-            if(ActiveBot != null)
+            if (ActiveBot != null)
             {
                 this.SwitchToButton.bounds.X = this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 2 + IClickableMenu.borderWidth + this.width - 310;
                 this.SwitchToButton.bounds.Y = this.yPositionOnScreen + this.height - spaceToClearTopBorder - 20;
@@ -267,18 +270,18 @@ namespace StardewBot.Levels
             {
                 if (this.pages.Count() > 0 && this.pages[this.currentPage].Count() > i)
                 {
-                    this.BotButtons[i].bounds.X = this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 4 ;
+                    this.BotButtons[i].bounds.X = this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder * 4;
                     this.BotButtons[i].bounds.Y = this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth + topPadding * 2 + i * (buttonTotalHeight / 6); ;
                     //Text Box
-                    IClickableMenu.drawTextureBox(b, Game1.mouseCursors, new Rectangle(384, 396, 15, 15), this.BotButtons[i].bounds.X, this.BotButtons[i].bounds.Y, this.BotButtons[i].bounds.Width, this.BotButtons[i].bounds.Height, this.pages[this.currentPage][i] == ActiveBot ? new Color(224, 191, 128) : this.BotButtons[i].containsPoint(Game1.getOldMouseX(), Game1.getOldMouseY())  ? Color.Wheat : Color.White, 4f, drawShadow: false);
-                    
+                    IClickableMenu.drawTextureBox(b, Game1.mouseCursors, new Rectangle(384, 396, 15, 15), this.BotButtons[i].bounds.X, this.BotButtons[i].bounds.Y, this.BotButtons[i].bounds.Width, this.BotButtons[i].bounds.Height, this.pages[this.currentPage][i] == ActiveBot ? new Color(224, 191, 128) : this.BotButtons[i].containsPoint(Game1.getOldMouseX(), Game1.getOldMouseY()) ? Color.Wheat : Color.White, 4f, drawShadow: false);
+
                     //Level Text
                     //SpriteText.drawString(b, this.pages[this.currentPage][i].MapName, this.TutorialButtons[i].bounds.X + 48 + 4, this.TutorialButtons[i].bounds.Y + 15);
                     Utility.drawTextWithShadow(b, this.pages[this.currentPage][i].name, Game1.dialogueFont, new Vector2(this.BotButtons[i].bounds.X + 30, this.BotButtons[i].bounds.Y + 15), this.pages[this.currentPage][i] == ActiveBot ? new Color(36, 26, 36) : Game1.textColor, 1f, 0.1f);
                 }
 
             }
-            if(this.xPositionOnScreen != backButton.bounds.X || this.yPositionOnScreen != backButton.bounds.Y)
+            if (this.xPositionOnScreen != backButton.bounds.X || this.yPositionOnScreen != backButton.bounds.Y)
             {
 
                 backButton.bounds = new Rectangle(this.xPositionOnScreen + 40, this.yPositionOnScreen + IClickableMenu.spaceToClearTopBorder + 10, 36, 33);
@@ -313,7 +316,7 @@ namespace StardewBot.Levels
                 base.drawMouse(b, ignore_transparency: true);
             }
 
-           /* Game1.drawDialogueBox(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder + 10, this.yPositionOnScreen + spaceToClearTopBorder + 200, this.leftWidth - 10, 300, message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", speaker: true, drawOnlyBox: true);*/
+            /* Game1.drawDialogueBox(this.xPositionOnScreen + IClickableMenu.spaceToClearSideBorder + 10, this.yPositionOnScreen + spaceToClearTopBorder + 200, this.leftWidth - 10, 300, message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", speaker: true, drawOnlyBox: true);*/
         }
 
         protected override void cleanupBeforeExit()
@@ -351,11 +354,11 @@ namespace StardewBot.Levels
         protected Point GetViewportSize()
         {
             Point viewport = new Point(Game1.uiViewport.Width, Game1.uiViewport.Height);
-                viewport = new Point(
-                    x: Math.Min(viewport.X, Game1.graphics.GraphicsDevice.Viewport.Width),
-                    y: Math.Min(viewport.Y, Game1.graphics.GraphicsDevice.Viewport.Height)
-                );
-            
+            viewport = new Point(
+                x: Math.Min(viewport.X, Game1.graphics.GraphicsDevice.Viewport.Width),
+                y: Math.Min(viewport.Y, Game1.graphics.GraphicsDevice.Viewport.Height)
+            );
+
 
             return viewport;
         }

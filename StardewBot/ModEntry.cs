@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BlocklyBridge;
 using Farmtronics;
+using Farmtronics.Bot;
 using MailFrameworkMod;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -115,17 +116,19 @@ namespace StardewBot
                 logger.Log("Connected!!!");
                 Dispatcher.State = State;
                 logger.Log("Loading: " + State.ToJSON());
-                if (Bot.instances.Count > 0)
+                if (BotManager.instances.Count > 0)
                 {
-                    Dispatcher.SetTarget(Bot.instances[0].Controller);
+                    Dispatcher.SetTarget(BotManager.instances[0].Controller);
                 }
                 Level.IDEReload();
             });
-            Logger.OnLog += Logger_OnLog;
-            Logger.OnWarn += Logger_OnWarn;
-            Dispatcher.OnSave += Dispatcher_OnSave;
+
+            // TODO: Looks like Camille modified BlocklyBridge without pushing changes :(
+            //Logger.OnLog += Logger_OnLog;
+            //Logger.OnWarn += Logger_OnWarn;
+            //Dispatcher.OnSave += Dispatcher_OnSave;
             Dispatcher.OnReceiveMinimize += Dispatcher_OnReceiveMinimize;
-            Dispatcher.OnSaveTutorial += Dispatcher_OnSaveTutorial;
+            //Dispatcher.OnSaveTutorial += Dispatcher_OnSaveTutorial;
 
             //var bounds = Game1.graphics.GraphicsDevice.Viewport.Bounds;
             //// GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
@@ -144,7 +147,7 @@ namespace StardewBot
 
         private void SpawnBotDebug(string arg1, string[] arg2)
         {
-            Game1.player.addItemToInventory(new Bot(i.ToString(), farmer: null));
+            Game1.player.addItemToInventory(new Bot(i.ToString()));
             i++;
         }
 
@@ -204,7 +207,7 @@ namespace StardewBot
 
             if (e.Button == SButton.MouseLeft)
             {
-                foreach (var bot in Bot.instances)
+                foreach (var bot in BotManager.instances)
                 {
                     if (e.Cursor.Tile == bot.TileLocation)
                     {
@@ -286,7 +289,7 @@ namespace StardewBot
 
         private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
         {
-            Bot.ClearAll();
+            BotManager.ClearAll();
         }
 
         uint prevTicks;
@@ -302,7 +305,7 @@ namespace StardewBot
 
             uint dTicks = e.Ticks - prevTicks;
             var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
-            Bot.UpdateAll(gameTime);
+            BotManager.UpdateAll(gameTime);
             prevTicks = e.Ticks;
         }
 
@@ -425,7 +428,7 @@ namespace StardewBot
         {
             if (Context.IsMainPlayer)
             {
-                Bot.ConvertBotsToChests();
+                BotManager.ConvertBotsToChests(true);
 
                 LevelData levelSave = new LevelData();
                 foreach(var level in Level.levelsDict.Values)
@@ -443,12 +446,12 @@ namespace StardewBot
 
         public void OnSaved(object sender, SavedEventArgs args)
         {
-            if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+            if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
         }
 
         public void OnSaveLoaded(object sender, SaveLoadedEventArgs args)
         {
-            if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+            if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
             Level.LoadAssets(Helper);
 
             var levelSave = helper.Data.ReadSaveData<LevelData>("level-save");
@@ -480,7 +483,7 @@ namespace StardewBot
                    new Letter(
                        "FirstBotLetter"
                        , "Here is you first bot. ^Feel free to experiment with what it can do for you. There are a few sample tutorials in the 'Bot Tutorial' TV Channel. ^~Some Body"
-                       , new List<Item> { new Bot("0001", farmer: null), phone }
+                       , new List<Item> { new Bot("0001"), phone }
                        , (l) => !Game1.player.mailReceived.Contains(l.Id)
                        , (l) => Game1.player.mailReceived.Add(l.Id)
                    )

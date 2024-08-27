@@ -1,5 +1,6 @@
 ﻿using BlocklyBridge;
 using Farmtronics;
+using Farmtronics.Bot;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
